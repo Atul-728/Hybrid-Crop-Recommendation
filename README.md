@@ -69,8 +69,9 @@ Create a file named **.env** in the root directory.
 Example:
 
 ```
-EMAIL_ADDRESS=your_email@gmail.com
+MAIL_USERNAME=username
 EMAIL_PASSWORD=your_app_password
+MAIL_FROM=your_email@gmail.com
 ```
 
 These credentials are used for sending emails from the system.
