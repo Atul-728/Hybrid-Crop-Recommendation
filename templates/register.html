@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/style.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="auth-wrapper">
+        <div class="auth-container">
+
+            <h1>User Registration</h1>
+
+            {% if error %}
+            <p class="error">{{ error }}</p>
+            {% endif %}
+
+            {% if success %}
+            <p class="success">{{ success }}</p>
+            {% endif %}
+
+            <form action="/register" method="post" autocomplete="off" novalidate>
+                <input type="text" style="display:none">
+                <input type="password" style="display:none">
+                
+                <label>Username:</label>
+                <input type="text" name="username" id="username" autocomplete="off">
+                <p id="username-status" style="margin-top: 0; margin-bottom: 5px; font-size: 13px;"></p>
+                <p id="username-error" style="color: red; font-size: 13px; margin-top: -5px; margin-bottom: 10px;"></p>
+
+                <label>Email:</label>
+                <input type="email" name="email" id="email" autocomplete="off">
+                <p id="email-status" style="margin-top: 0; margin-bottom: 5px; font-size: 13px;"></p>
+                <p id="email-error" style="color: red; font-size: 13px; margin-top: -5px; margin-bottom: 10px;"></p>
+
+                <label>Password:</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" autocomplete="off">
+                    <i class="fa-solid fa-eye eye" id="togglePassword"></i>
+                </div>
+                <p id="password-error" style="color: red; font-size: 13px; margin-top: 5px; margin-bottom: 5px;"></p>
+
+                <div class="password-strength-container">
+                    <div class="strength-bar">
+                        <div class="bar-segment" id="seg1"></div>
+                        <div class="bar-segment" id="seg2"></div>
+                        <div class="bar-segment" id="seg3"></div>
+                    </div>
+                    <p id="strength-text"></p>
+                    </div>
+                
+                <button type="submit" style="margin-top: 10px;">Register</button>
+            </form>
+
+            <a href="/login" style="display: block; text-align: center; margin-top: 15px;">Already have an account? Login</a>
+
+        </div>
+    </div>
+
+    <script>
+        const seg1 = document.getElementById("seg1");
+        const seg2 = document.getElementById("seg2");
+        const seg3 = document.getElementById("seg3");
+
+        const password = document.getElementById("password");
+        const togglePassword = document.getElementById("togglePassword");
+        const strengthText = document.getElementById("strength-text");
+        const passwordError = document.getElementById("password-error");
+
+        togglePassword.addEventListener("click", function(){
+            const type = password.getAttribute("type") === "password" ? "text" : "password";
+            password.setAttribute("type", type);
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+
+        // Clear Username error dynamically
+        document.getElementById("username").addEventListener("input", async function () {
+            const username = this.value;
+            const status = document.getElementById("username-status");
+            const errEl = document.getElementById("username-error");
+
+            if (username.trim() !== "") {
+                errEl.innerText = "";
+            }
+
+            if(username.length < 3){
+                status.innerText = "";
+                return;
+            }
+            const res = await fetch(`/check-username?username=${username}`);
+            const data = await res.json();
+
+            if(data.available){
+                status.innerText = "Username available";
+                status.style.color = "green";
+            } else {
+                status.innerText = "Username already taken";
+                status.style.color = "red";
+            }
+        });
+
+        // Clear Email error dynamically
+        document.getElementById("email").addEventListener("input", function() {
+            let val = this.value.trim();
+            let errEl = document.getElementById("email-error");
+            
+            if (errEl.innerText !== "") {
+                if (val === "") {
+                    errEl.innerText = "Email address is required.";
+                } else if (!/^\S+@\S+\.\S+$/.test(val)) {
+                    errEl.innerText = "Please enter a valid email address.";
+                } else {
+                    errEl.innerText = "";
+                }
+            }
+        });
+
+        // Password input logic (Strength + Dynamic Error Clearing)
+        password.addEventListener("input", () => {
+            let val = password.value;
+            let len = val.length;
+
+            if (len === 0) {
+                seg1.style.background = "#ddd";
+                seg2.style.background = "#ddd";
+                seg3.style.background = "#ddd";
+                strengthText.innerText = "";
+            } else if (len <= 7) {
+                seg1.style.background = "red";
+                seg2.style.background = "#ddd";
+                seg3.style.background = "#ddd";
+                strengthText.innerText = "Weak Password";
+                strengthText.style.color = "red";
+            } else if (len <= 9) {
+                seg1.style.background = "orange";
+                seg2.style.background = "orange";
+                seg3.style.background = "#ddd";
+                strengthText.innerText = "Medium Password";
+                strengthText.style.color = "orange";
+            } else {
+                seg1.style.background = "green";
+                seg2.style.background = "green";
+                seg3.style.background = "green";
+                strengthText.innerText = "Strong Password";
+                strengthText.style.color = "green";
+            }
+            
+            // Dynamically clear or update password error if it's currently showing
+            if (passwordError.innerText !== "") {
+                let isLength = len >= 8;
+                let isUpper = /[A-Z]/.test(val);
+                let isLower = /[a-z]/.test(val);
+                let isNum = /[0-9]/.test(val);
+                let isSym = /[!@#$%^&*]/.test(val);
+                let isAllRulesMet = isUpper && isLower && isNum && isSym;
+
+                if (val === "") {
+                    passwordError.innerText = "Password is required.";
+                } else if (!isAllRulesMet) {
+                    passwordError.innerText = "Password must include uppercase, lowercase, number, and special character.";
+                } else if (!isLength) {
+                    passwordError.innerText = "Password must be at least 8 characters long.";
+                } else {
+                    passwordError.innerText = "";
+                }
+            }
+        });
+
+        // Form Submission Validation
+        document.querySelector("form").addEventListener("submit", function(e) {
+            let isValid = true; 
+
+            let userVal = document.getElementById("username").value.trim();
+            let emailVal = document.getElementById("email").value.trim();
+            let passVal = password.value;
+            
+            // Username Check
+            if (userVal === "") {
+                document.getElementById("username-error").innerText = "Username is required.";
+                isValid = false;
+            }
+
+            // Email Check
+            if (emailVal === "") {
+                document.getElementById("email-error").innerText = "Email address is required.";
+                isValid = false;
+            } else if (!/^\S+@\S+\.\S+$/.test(emailVal)) {
+                document.getElementById("email-error").innerText = "Please enter a valid email address.";
+                isValid = false;
+            }
+
+            // Password Check Breakdown
+            let isLength = passVal.length >= 8;
+            let isUpper = /[A-Z]/.test(passVal);
+            let isLower = /[a-z]/.test(passVal);
+            let isNum = /[0-9]/.test(passVal);
+            let isSym = /[!@#$%^&*]/.test(passVal);
+            let isAllRulesMet = isUpper && isLower && isNum && isSym;
+
+            if (passVal === "") {
+                passwordError.innerText = "Password is required.";
+                isValid = false;
+            } else if (!isAllRulesMet) {
+                passwordError.innerText = "Password must include uppercase, lowercase, number, and special character.";
+                isValid = false;
+            } else if (!isLength) {
+                passwordError.innerText = "Password must be at least 8 characters long.";
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault(); 
+            }
+        });
+    </script>
+</body>
+</html>

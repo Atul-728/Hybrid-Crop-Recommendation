@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Logs</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<h1>Prediction Logs</h1>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>ID</th>
+        <th>N</th>
+        <th>P</th>
+        <th>K</th>
+        <th>Temperature</th>
+        <th>Humidity</th>
+        <th>pH</th>
+        <th>Rainfall</th>
+        <th>Crop</th>
+        <th>Confidence</th>
+        <th>Timestamp</th>
+    </tr>
+
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.id }}</td>
+        <td>{{ log.N }}</td>
+        <td>{{ log.P }}</td>
+        <td>{{ log.K }}</td>
+        <td>{{ log.temperature }}</td>
+        <td>{{ log.humidity }}</td>
+        <td>{{ log.ph }}</td>
+        <td>{{ log.rainfall }}</td>
+        <td>{{ log.predicted_crop }}</td>
+        <td>{{ log.confidence }}</td>
+        <td>{{ log.timestamp }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+<br><br>
+
+<a href="/download_csv">Download CSV</a>
+<br>
+<a href="/download_pdf">Download PDF</a>
+<br><br>
+<a href="/">Go Back</a>
+
+</body>
+</html>

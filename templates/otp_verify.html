@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="/static/style.css?v=3">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-container">
+
+        <h1>OTP Verification</h1>
+        <p class="otp-info" style="text-align: center;">Enter the 6-digit OTP sent to your email</p>
+        
+        <p id="timer" style="font-weight: bold; color: #d32f2f; text-align: center; margin-bottom: 20px; min-height: 1.2em;"></p>
+
+        {% if error %}
+        <p class="error" style="text-align: center; color: red;">{{ error }}</p>
+        {% endif %}
+        
+        {% if success %}
+        <p class="success" style="text-align: center; color: green;">{{ success }}</p>
+        {% endif %}
+
+        <form action="/verify-otp" method="post" id="verify-form">
+            <input type="hidden" name="email" value="{{ email }}">
+
+            <div class="otp-container">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" autocomplete="off">
+            </div>
+
+            <input type="hidden" name="otp" id="otp">
+
+            <button type="submit" id="verify-btn" style="width: 100%;">Verify OTP</button>
+        </form>
+
+        <form action="/resend-otp" method="post" id="resend-form" style="display: none; text-align: center; margin-top: 15px;">
+            <input type="hidden" name="email" value="{{ email }}">
+            <p style="color: #666; font-size: 14px; margin-bottom: 10px;">Code expired or didn't receive it?</p>
+            <button type="submit" style="background: #f57c00; width: auto; padding: 10px 20px; border-radius: 8px; color: white; border: none; cursor: pointer; font-weight: bold;">Resend OTP</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const boxes = document.querySelectorAll(".otp-box");
+    const timerElement = document.getElementById("timer");
+    const submitBtn = document.getElementById("verify-btn");
+    const resendForm = document.getElementById("resend-form");
+    
+    // Backend se bacha hua time lega, default 30 seconds
+    let timeLeft = parseInt("{{ time_left | default(300) }}") || 300;
+
+    function updateTimerDisplay() {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        timerElement.innerText = `Time left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    function disableForm() {
+        timerElement.innerText = "OTP Expired";
+        boxes.forEach(b => {
+            b.disabled = true; 
+        }); 
+        submitBtn.disabled = true;             
+        submitBtn.style.background = "#ccc"; 
+        submitBtn.style.cursor = "not-allowed";
+        resendForm.style.display = "block"; 
+    }
+
+    // Initial check aur Timer start
+    if (timeLeft <= 0) {
+        disableForm();
+    } else {
+        updateTimerDisplay(); // Page load hote hi turant sahi time dikhayega
+        const countdown = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                disableForm();
+            } else {
+                timeLeft--;
+                updateTimerDisplay();
+            }
+        }, 1000);
+    }
+
+    // Input aur Paste logic
+    boxes.forEach((box, index) => {
+        box.addEventListener("input", () => {
+            if (timeLeft <= 0) return;
+            box.value = box.value.replace(/[^0-9]/g, ''); 
+            
+            if (box.value.length === 1 && index < boxes.length - 1) {
+                boxes[index + 1].focus();
+            }
+            updateOTP();
+
+            if (index === boxes.length - 1 && box.value !== "") {
+                document.getElementById("verify-form").submit();
+            }
+        });
+
+        box.addEventListener("keydown", (e) => {
+            if (timeLeft <= 0) return;
+            if (e.key === "Backspace" && box.value === "" && index > 0) {
+                boxes[index - 1].focus();
+            }
+        });
+    });
+
+    boxes[0].addEventListener("paste", (e) => {
+        if (timeLeft <= 0) return;
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData("text").trim();
+        if (/^\d{6}$/.test(pastedData)) {
+            boxes.forEach((box, i) => {
+                box.value = pastedData[i];
+            });
+            updateOTP();
+            document.getElementById("verify-form").submit(); 
+        }
+    });
+
+    function updateOTP() {
+        let otp = "";
+        boxes.forEach(b => otp += b.value);
+        document.getElementById("otp").value = otp;
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Recommendation Result</title>
+    <link rel="stylesheet" href="/static/style.css?v=4">
+</head>
+<body>
+
+<div class="result-wrapper">
+
+    <div class="hero">
+
+        <div class="crop-info">
+            <h1 class="crop-title">{{ result.top1|capitalize }}</h1>
+            <p class="tagline">Best Crop For Your Field 🌾</p>
+
+            <div class="confidence-bar">
+                <div class="confidence-fill"
+                     style="width: {{ result.confidence }}%">
+                    {{ result.confidence }}%
+                </div>
+            </div>
+
+            <div class="risk-level">
+                {{ result.risk_level }}
+            </div>
+        </div>
+
+        <div class="crop-image">
+            <img id="dynamic-crop-img" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80" alt="{{ result.top1 }}" class="crop-img">
+        </div>
+
+    </div>
+
+    <div class="reason-box">
+        <h3>Why This Crop?</h3>
+        <p>{{ result.reason }}</p>
+    </div>
+
+    <div class="top3-box">
+        <h3>Other Good Options</h3>
+
+        <ul>
+            {% for crop in result.top3 %}
+            <li>
+                <strong>{{ crop.name|capitalize }}</strong>
+                <span class="small-confidence">({{ crop.confidence }}% Match)</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/dashboard" style="background: #2e7d32; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-right: 15px;">Predict Another Crop</a>
+        <a href="/logs" style="color: #2e7d32; text-decoration: underline; font-weight: bold;">View History</a>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Dataset ke naam ko Wikipedia ke asali article naam se map kar rahe hain
+        const cropMap = {
+            "rice": "Rice",
+            "maize": "Maize",
+            "chickpea": "Chickpea",
+            "kidneybeans": "Kidney bean",
+            "pigeonpeas": "Pigeon pea",
+            "mothbeans": "Moth bean",
+            "mungbean": "Mung bean",
+            "blackgram": "Vigna mungo",
+            "lentil": "Lentil",
+            "pomegranate": "Pomegranate",
+            "banana": "Banana",
+            "mango": "Mango",
+            "grapes": "Grape",
+            "watermelon": "Watermelon",
+            "muskmelon": "Muskmelon",
+            "apple": "Apple",
+            "orange": "Orange (fruit)",
+            "papaya": "Papaya",
+            "coconut": "Coconut",
+            "cotton": "Cotton",
+            "jute": "Jute",
+            "coffee": "Coffee bean"
+        };
+
+        const dbCropName = "{{ result.top1 }}".toLowerCase();
+        const wikiTitle = cropMap[dbCropName] || dbCropName;
+        
+        // Wikipedia API Call
+        const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
+
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                const pages = data.query.pages;
+                const page = Object.values(pages)[0];
+                
+                // Agar Wikipedia ke paas photo hai, toh usko replace kar do
+                if (page.thumbnail && page.thumbnail.source) {
+                    document.getElementById("dynamic-crop-img").src = page.thumbnail.source;
+                }
+            })
+            .catch(err => console.error("Wikipedia image load failed:", err));
+    });
+</script>
+
+</body>
+</html>

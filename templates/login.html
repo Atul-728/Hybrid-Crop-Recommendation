@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Farmer Login</title>
+    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="page-center">
+    <div class="auth-container">
+
+        <h1>Farmer Login</h1>
+
+        {% if error %}
+            <p class="error" style="text-align: center; color: red;">{{ error }}</p>
+        {% endif %}
+        {% if success %}
+            <p class="success" style="text-align: center; color: green;">{{ success }}</p>
+        {% endif %}
+
+        <form method="POST" action="/login" autocomplete="off">
+            <label>Username or Email</label>
+            <input type="text" name="username" placeholder="Enter username or email" required autocomplete="off">
+
+            <label>Password</label>
+            <div class="password-wrapper">
+                <input type="password" name="password" id="password" placeholder="Enter your password" required autocomplete="off">
+                <i class="fa-solid fa-eye eye" id="togglePassword"></i>
+            </div>
+            
+            <div style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+                <a href="/forgot-password" style="color: #1976d2; font-size: 13px; text-decoration: none;">Forgot password?</a>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="auth-links" style="text-align: center; margin-top: 20px;">
+            <a href="/register">Create Account</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const password = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+
+    togglePassword.addEventListener("click", function(){
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
+    });
+</script>
+
+</body>
+</html>
