@@ -70,7 +70,7 @@ Example:
 
 ```
 MAIL_USERNAME=username
-EMAIL_PASSWORD=your_app_password
+MAIL_PASSWORD=your_app_password
 MAIL_FROM=your_email@gmail.com
 ```
 
