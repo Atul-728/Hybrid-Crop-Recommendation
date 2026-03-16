@@ -1,138 +1,263 @@
 import os
 import joblib
 import numpy as np
+import pandas as pd
+import requests
+from datetime import datetime
+from dotenv import load_dotenv
+
 from ml.uncertainty import calculate_uncertainty
+from app.price_fallback import REALISTIC_PRICE_DATA, REGION_MULTIPLIERS
+from app.crop_mapping import CROP_MAPPING
+
+# -------------------------------
+# ENV CONFIG
+# -------------------------------
+
+load_dotenv()
+API_KEY = os.getenv("MANDI_API_KEY")
+
+# -------------------------------
+# MODEL ARTIFACT PATH
+# -------------------------------
 
 ARTIFACTS_PATH = os.path.join("ml", "artifacts")
 
 
-# ----------------------------
-# Load Production Bundle
-# ----------------------------
+# -------------------------------
+# LOAD ML MODELS
+# -------------------------------
 
-def load_production_bundle():
-    return joblib.load(os.path.join(ARTIFACTS_PATH, "production_bundle.pkl"))
+def load_all_models():
+    models = {
+        "rf": joblib.load(os.path.join(ARTIFACTS_PATH, "model_rf.pkl")),
+        "xgb": joblib.load(os.path.join(ARTIFACTS_PATH, "model_xgb.pkl")),
+        "lgbm": joblib.load(os.path.join(ARTIFACTS_PATH, "model_lgbm.pkl")),
+        "cat": joblib.load(os.path.join(ARTIFACTS_PATH, "model_catboost.pkl")),
+        "tabnet": joblib.load(os.path.join(ARTIFACTS_PATH, "model_tabnet.pkl"))
+    }
+
+    meta_model = joblib.load(os.path.join(ARTIFACTS_PATH, "stacked_model.pkl"))
+    scaler = joblib.load(os.path.join(ARTIFACTS_PATH, "scaler.pkl"))
+    le = joblib.load(os.path.join(ARTIFACTS_PATH, "label_encoder.pkl"))
+    te = joblib.load(os.path.join(ARTIFACTS_PATH, "target_encoder.pkl"))
+
+    return models, meta_model, scaler, le, te
 
 
-# ----------------------------
-# Farmer Friendly Explanation
-# ----------------------------
+# -------------------------------
+# LIVE MANDI PRICE FETCH
+# -------------------------------
 
-def generate_reason(input_data, predicted_crop):
+def fetch_live_price(crop_name, region, state):
+    state = state.upper() if state else ""
+    crop = crop_name.lower()
 
-    reasons = []
+    rm = REGION_MULTIPLIERS.get(region, {"cost":1.0,"price":1.0})
 
-    # Rainfall logic
-    if input_data["rainfall"] > 200:
-        reasons.append("Your field receives high rainfall which supports crops that require more water.")
-    elif input_data["rainfall"] < 100:
-        reasons.append("Your field has low rainfall, so crops suitable for dry conditions are preferred.")
+    mapping = CROP_MAPPING.get(crop)
 
-    # Temperature logic
-    if 20 <= input_data["temperature"] <= 35:
-        reasons.append("Temperature in your area is ideal for healthy crop growth.")
+    if mapping:
+        api_names = mapping["api_names"]
     else:
-        reasons.append("Temperature conditions are manageable for this crop.")
+        api_names = [crop.upper()]
 
-    # Soil pH logic
-    if 6 <= input_data["ph"] <= 7:
-        reasons.append("Soil pH is balanced which helps in better nutrient absorption.")
-    else:
-        reasons.append("Soil pH is slightly outside ideal range but still acceptable.")
+    url = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
 
-    # Nutrients
-    if input_data["N"] > 40:
-        reasons.append("Nitrogen level is good for strong leaf development.")
+    # -----------------------
+    # TRY API WITH ALIASES
+    # -----------------------
 
-    if input_data["P"] > 40:
-        reasons.append("Phosphorus level supports root and flower growth.")
+    try:
 
-    if input_data["K"] > 40:
-        reasons.append("Potassium level improves plant strength and disease resistance.")
+        for commodity in api_names:
 
-    explanation = " ".join(reasons)
+            params = {
+                "api-key": API_KEY,
+                "format": "json",
+                "limit": 5,
+                "filters[commodity]": commodity,
+                "filters[state]": state
+            }
 
-    return explanation + f" Based on these conditions, {predicted_crop} is highly suitable for your land."
+            r = requests.get(url, params=params, timeout=5)
+
+            if r.status_code != 200:
+                continue
+
+            data = r.json()
+
+            if "records" in data and len(data["records"]) > 0:
+
+                prices = []
+
+                for rec in data["records"]:
+                    if rec.get("modal_price"):
+                        prices.append(float(rec["modal_price"]))
+
+                if prices:
+
+                    avg_price = sum(prices) / len(prices)
+
+                    cost = avg_price * 0.65
+
+                    return round(cost * rm["cost"], 2), round(avg_price * rm["price"], 2)
+
+    except Exception as e:
+        print("API price fetch failed:", e)
+
+    # -----------------------
+    # FALLBACK LOCAL DATA
+    # -----------------------
+
+    crop_data = REALISTIC_PRICE_DATA.get(crop, REALISTIC_PRICE_DATA["default"])
+
+    cost = crop_data["cost"] * rm["cost"]
+    price = crop_data["price"] * rm["price"]
+
+    return round(cost, 2), round(price, 2)
 
 
-# ----------------------------
-# Risk Category Logic
-# ----------------------------
-
-def get_risk_level(confidence_percent, risk_score):
-
-    if confidence_percent >= 85 and risk_score < 0.2:
-        return "Low Risk – Highly Suitable Crop"
-
-    elif confidence_percent >= 70:
-        return "Moderate Risk – Suitable with proper care"
-
-    else:
-        return "High Risk – Consider alternative crops"
-
-
-# ----------------------------
-# Predict Crop
-# ----------------------------
+# -------------------------------
+# MAIN PREDICTION PIPELINE
+# -------------------------------
 
 def predict_crop(input_data: dict):
 
-    bundle = load_production_bundle()
+    models, meta_model, scaler, le, te = load_all_models()
 
-    model = bundle["model"]
-    scaler = bundle["scaler"]
-    label_encoder = bundle["label_encoder"]
+    month = datetime.now().month
+    seasonal_index = np.sin(2 * np.pi * month / 12)
 
-    # Convert input dict to array
-    input_array = np.array([[
-        input_data["N"],
-        input_data["P"],
-        input_data["K"],
-        input_data["temperature"],
-        input_data["humidity"],
-        input_data["ph"],
-        input_data["rainfall"]
-    ]])
+    try:
+        region_encoded = int(te.transform([input_data["region"]])[0])
+    except Exception:
+        region_encoded = 0
 
-    # Scale input
+    profit_ratio = (
+        (input_data["market_price"] - input_data["production_cost"])
+        / input_data["production_cost"]
+        if input_data["production_cost"] > 0
+        else 0
+    )
+
+    input_array = np.array([
+        [
+            input_data["N"],
+            input_data["P"],
+            input_data["K"],
+            input_data["temperature"],
+            input_data["humidity"],
+            input_data["ph"],
+            input_data["rainfall"],
+            month,
+            seasonal_index,
+            input_data["rainfall"],  # rolling_rainfall approx
+            input_data["market_price"],
+            input_data["production_cost"],
+            profit_ratio,
+            region_encoded
+        ]
+    ])
+
     input_scaled = scaler.transform(input_array)
 
-    # Predict probabilities
-    probs = model.predict_proba(input_scaled)[0]
+    meta_features = []
 
-    # Get top 3 indices
-    top3_indices = np.argsort(probs)[-3:][::-1]
+    for name, m in models.items():
+        probs = m.predict_proba(input_scaled)
+        meta_features.append(probs)
 
-    # Create structured top3 list with confidence
+    X_meta = np.hstack(meta_features)
+
+    final_probs = meta_model.predict_proba(X_meta)[0]
+
+    top3_idx = np.argsort(final_probs)[-3:][::-1]
+
     top3 = []
-    for idx in top3_indices:
-        crop_name = label_encoder.inverse_transform([idx])[0]
-        crop_conf = round(float(probs[idx]) * 100, 2)
+    profit_scores = []
+
+    user_region = input_data["region"]
+
+    for idx in top3_idx:
+
+        crop_name = le.inverse_transform([idx])[0]
+
+        confidence = float(final_probs[idx]) * 100
+
+        dynamic_cost, dynamic_price = fetch_live_price(
+            crop_name,
+            user_region,
+            input_data["state"]
+        )
+
+        # realistic profit
+        profit_estimate = dynamic_price - dynamic_cost
 
         top3.append({
             "name": crop_name,
-            "confidence": crop_conf
+            "confidence": round(confidence, 2),
+            "dynamic_cost": dynamic_cost,
+            "dynamic_price": dynamic_price,
+            "estimated_profit": round(profit_estimate, 2)
         })
 
-    # Top 1
-    top1 = top3[0]["name"]
-    confidence_percent = top3[0]["confidence"]
+        profit_scores.append(profit_estimate)
 
-    # Uncertainty calculation
-    uncertainty_result = calculate_uncertainty(input_scaled)
-    raw_risk_score = float(uncertainty_result["risk_score"])
+    best_index = int(np.argmax(profit_scores))
+    best_crop = top3[0]
+    uncertainty = calculate_uncertainty(input_scaled)
 
-    # Convert risk level
-    risk_level = get_risk_level(confidence_percent, raw_risk_score)
+    # -------------------------------
+    # AGRICULTURAL RISK
+    # -------------------------------
 
-    # Generate farmer explanation
-    reason = generate_reason(input_data, top1)
+    if best_crop["confidence"] >= 75:
+        risk_level = "Low Risk – Highly Suitable for your Soil"
+    elif best_crop["confidence"] >= 40:
+        risk_level = "Moderate Risk – Marginally Suitable"
+    else:
+        risk_level = "High Risk – Poor Match for your Soil/Climate"
+
+    # -------------------------------
+    # FINANCIAL ALERT
+    # -------------------------------
+
+    if best_crop["estimated_profit"] < 0:
+
+        if best_crop["confidence"] >= 75:
+            alert_reason = (
+                f"ALERT: {best_crop['name']} is highly suitable for your land "
+                f"({best_crop['confidence']}% match), but current market rates "
+                f"show a LOSS."
+            )
+
+        else:
+            alert_reason = (
+                f"WARNING: {best_crop['name']} is both a High Risk for your soil "
+                f"and shows a potential financial LOSS."
+            )
+
+    else:
+
+        if best_crop["confidence"] < 50:
+            alert_reason = (
+                f"CAUTION: {best_crop['name']} shows a potential profit but "
+                f"is agriculturally risky ({best_crop['confidence']}% match)."
+            )
+
+        else:
+            alert_reason = (
+                f"SUCCESS: {best_crop['name']} is highly suitable for your land "
+                f"and shows a positive expected profit."
+            )
 
     return {
-        "top1": top1,
+        "top1": best_crop["name"],
         "top3": top3,
-        "confidence": confidence_percent,
-        "risk_score": round(raw_risk_score, 6),
+        "confidence": best_crop["confidence"],
+        "risk_score": round(float(uncertainty["risk_score"]), 6),
+        "expected_profit": round(best_crop["estimated_profit"], 2),
         "risk_level": risk_level,
-        "reason": reason
+        "reason": alert_reason
     }

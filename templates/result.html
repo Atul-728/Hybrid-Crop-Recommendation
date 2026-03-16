@@ -1,109 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Crop Recommendation Result</title>
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .result-wrapper { max-width: 900px; margin: 40px auto; padding: 20px; font-family: sans-serif; position: relative; z-index: 10; }
+        
+        /* Alert Box Styling */
+        .alert-box { padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; font-size: 16px; line-height: 1.5; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .alert-danger { background-color: #ffebee; color: #c62828; border-left: 6px solid #c62828; }
+        .alert-success { background-color: #e8f5e9; color: #2e7d32; border-left: 6px solid #2e7d32; }
+        .alert-warning { background-color: #fff3e0; color: #ef6c00; border-left: 6px solid #ef6c00; }
+        
+        /* Main Result Highlight */
+        .main-recommendation { text-align: center; background: rgba(255, 255, 255, 0.95); padding: 40px 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin-bottom: 40px; }
+        .main-crop-name { font-size: 48px; color: #2e7d32; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-top: 10px; }
+        .badge-risk { background: #e0f7fa; color: #00838f; }
+
+        /* Top 3 Alternatives Grid */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .crop-card { background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #4CAF50; transition: transform 0.3s; }
+        .crop-card:hover { transform: translateY(-5px); }
+        .crop-card h3 { color: #333; font-size: 24px; margin-bottom: 15px; text-transform: capitalize; }
+        
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #555; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-value { font-weight: bold; color: #222; }
+        
+        .profit-positive { color: #2e7d32 !important; font-size: 18px; }
+        .profit-negative { color: #d32f2f !important; font-size: 18px; }
+
+        .btn-container { text-align: center; margin-top: 30px; }
+        .btn-action { display: inline-block; padding: 12px 30px; background: #2e7d32; color: white; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-action:hover { background: #1b5e20; transform: translateY(-2px); }
+    </style>
 </head>
-<body>
+<body style="background-color: #f4f7f6; transition: background-image 0.5s ease-in-out;">
+<div class="top-nav-bar">
+    <div class="user-greeting">
+        <i class="fa-solid fa-hand-wave"></i> {{ greeting_prefix }} {{ name | title }}!
+    </div>
+    <button class="theme-toggle" id="theme-toggle">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+</div>
 
+<script>
+    const themeToggle = document.getElementById("theme-toggle");
+    const body = document.documentElement;
+    const icon = themeToggle.querySelector("i");
+
+    // Check LocalStorage on page load
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.setAttribute("data-theme", "dark");
+        icon.classList.replace("fa-moon", "fa-sun");
+    }
+
+    // Toggle button logic
+    themeToggle.addEventListener("click", () => {
+        if (document.body.getAttribute("data-theme") === "dark") {
+            document.body.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light");
+            icon.classList.replace("fa-sun", "fa-moon");
+        } else {
+            document.body.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+            icon.classList.replace("fa-moon", "fa-sun");
+        }
+    });
+</script>
 <div class="result-wrapper">
+    
+    {% if 'LOSS' in result.reason or 'ALERT' in result.reason or 'WARNING' in result.reason %}
+        <div class="alert-box alert-danger">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 30px;"></i>
+            <div>{{ result.reason }}</div>
+        </div>
+    {% elif 'CAUTION' in result.reason %}
+        <div class="alert-box alert-warning">
+            <i class="fa-solid fa-lightbulb" style="font-size: 30px;"></i>
+            <div>{{ result.reason }}</div>
+        </div>
+    {% else %}
+        <div class="alert-box alert-success">
+            <i class="fa-solid fa-circle-check" style="font-size: 30px;"></i>
+            <div>{{ result.reason }}</div>
+        </div>
+    {% endif %}
 
-    <div class="hero">
+    <div class="main-recommendation">
+        <h4 style="color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Smart Recommended Crop</h4>
+        <h1 class="main-crop-name"><i class="fa-solid fa-seedling"></i> {{ result.top1 }}</h1>
+        <div class="badge badge-risk"><i class="fa-solid fa-shield-halved"></i> {{ result.risk_level }}</div>
+        <p style="margin-top: 20px; font-size: 18px; color: #444;">
+            Expected Profit (Per Quintal): 
+            <strong class="{% if result.expected_profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                ₹{{ result.expected_profit }}
+            </strong>
+        </p>
+    </div>
 
-        <div class="crop-info">
-            <h1 class="crop-title">{{ result.top1|capitalize }}</h1>
-            <p class="tagline">Best Crop For Your Field 🌾</p>
-
-            <div class="confidence-bar">
-                <div class="confidence-fill"
-                     style="width: {{ result.confidence }}%">
-                    {{ result.confidence }}%
-                </div>
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 8px;"><i class="fa-solid fa-chart-line"></i> Market & Yield Analysis</h2>
+    <div class="grid-container">
+        {% for crop in result.top3 %}
+        <div class="crop-card" style="border-top-color: {% if crop.estimated_profit < 0 %}#f44336{% elif crop.name == result.top1 %}#2e7d32{% else %}#ff9800{% endif %};">
+            
+            <h3>{{ crop.name }} {% if crop.name == result.top1 %}<i class="fa-solid fa-star" style="color: #ffc107; font-size: 16px;"></i>{% endif %}</h3>
+            
+            <div class="stat-row">
+                <span>Soil Suitability:</span>
+                <span class="stat-value" style="color: #1976d2;">{{ crop.confidence }}%</span>
             </div>
-
-            <div class="risk-level">
-                {{ result.risk_level }}
+            
+            <div class="stat-row">
+                <span>Production Cost / Quintal:</span>
+                <span class="stat-value">₹{{ crop.dynamic_cost }}</span>
+            </div>
+            
+            <div class="stat-row">
+                <span>Market Price / Quintal:</span>
+                <span class="stat-value">₹{{ crop.dynamic_price }}</span>
+            </div>
+            
+            <div class="stat-row" style="margin-top: 15px; border-bottom: none;">
+                <span style="font-weight: bold; font-size: 16px;">Proj. Profit:</span>
+                <span class="stat-value {% if crop.estimated_profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                    ₹{{ crop.estimated_profit }}
+                </span>
             </div>
         </div>
-
-        <div class="crop-image">
-            <img id="dynamic-crop-img" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80" alt="{{ result.top1 }}" class="crop-img">
-        </div>
-
+        {% endfor %}
     </div>
 
-    <div class="reason-box">
-        <h3>Why This Crop?</h3>
-        <p>{{ result.reason }}</p>
-    </div>
-
-    <div class="top3-box">
-        <h3>Other Good Options</h3>
-
-        <ul>
-            {% for crop in result.top3 %}
-            <li>
-                <strong>{{ crop.name|capitalize }}</strong>
-                <span class="small-confidence">({{ crop.confidence }}% Match)</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="/dashboard" style="background: #2e7d32; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-right: 15px;">Predict Another Crop</a>
-        <a href="/logs" style="color: #2e7d32; text-decoration: underline; font-weight: bold;">View History</a>
+    <div class="btn-container">
+        {% if not view_mode %}
+        <a href="/dashboard" class="btn-action"><i class="fa-solid fa-arrow-left"></i> Analyze Another Field</a>
+        {% endif %}
+        <a href="/logs" class="btn-action" style="background: #555; margin-left: 15px;"><i class="fa-solid fa-list"></i> View My Logs</a>
     </div>
 
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Dataset ke naam ko Wikipedia ke asali article naam se map kar rahe hain
-        const cropMap = {
-            "rice": "Rice",
-            "maize": "Maize",
-            "chickpea": "Chickpea",
-            "kidneybeans": "Kidney bean",
-            "pigeonpeas": "Pigeon pea",
-            "mothbeans": "Moth bean",
-            "mungbean": "Mung bean",
-            "blackgram": "Vigna mungo",
-            "lentil": "Lentil",
-            "pomegranate": "Pomegranate",
-            "banana": "Banana",
-            "mango": "Mango",
-            "grapes": "Grape",
-            "watermelon": "Watermelon",
-            "muskmelon": "Muskmelon",
-            "apple": "Apple",
-            "orange": "Orange (fruit)",
-            "papaya": "Papaya",
-            "coconut": "Coconut",
-            "cotton": "Cotton",
-            "jute": "Jute",
-            "coffee": "Coffee bean"
-        };
-
-        const dbCropName = "{{ result.top1 }}".toLowerCase();
-        const wikiTitle = cropMap[dbCropName] || dbCropName;
-        
-        // Wikipedia API Call
-        const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
-
-        fetch(apiUrl)
-            .then(res => res.json())
-            .then(data => {
-                const pages = data.query.pages;
-                const page = Object.values(pages)[0];
-                
-                // Agar Wikipedia ke paas photo hai, toh usko replace kar do
-                if (page.thumbnail && page.thumbnail.source) {
-                    document.getElementById("dynamic-crop-img").src = page.thumbnail.source;
-                }
-            })
-            .catch(err => console.error("Wikipedia image load failed:", err));
-    });
+    // Crop ka naam uthao
+    const predictedCrop = "{{ result.top1.lower() }}";
+    
+    // Random number generate karo taaki browser cache use na kare aur hamesha nayi photo aaye
+    const randomNum = Math.floor(Math.random() * 10000);
+    
+    // LoremFlickr URL (farm aur field keywords ke sath)
+    const imageUrl = `https://loremflickr.com/1600/900/${predictedCrop},farm,field/all?random=${randomNum}`;
+    
+    // Body ka background dynamically change karo
+    document.body.style.backgroundImage = `linear-gradient(rgba(244, 247, 246, 0.85), rgba(244, 247, 246, 0.85)), url('${imageUrl}')`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundAttachment = "fixed";
 </script>
 
 </body>

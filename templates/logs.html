@@ -1,52 +1,194 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Prediction Logs</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Prediction Logs</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 20px; font-family: sans-serif; }
+        .dashboard-header { text-align: center; margin-bottom: 30px; color: #2e7d32; font-size: 32px; font-weight: bold;}
+        
+        .charts-container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 25px; margin-bottom: 40px; }
+        .chart-box { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); flex: 1; min-width: 450px; text-align: center; }
+        
+        .table-container { overflow-x: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #333; font-weight: bold; text-transform: uppercase; }
+        tr:hover { background-color: #f1f8e9; }
+        
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
+        .btn { padding: 12px 24px; text-decoration: none; color: white; border-radius: 8px; font-weight: bold; transition: 0.3s; display: inline-block; border: none; cursor: pointer; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-csv { background-color: #2e7d32; }
+        .btn-pdf { background-color: #d32f2f; }
+        .btn-back { background-color: #555; }
+        
+        .empty-state { text-align: center; padding: 50px; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    </style>
 </head>
-<body>
-<h1>Prediction Logs</h1>
+<body style="background-color: #f4f7f6;">
+<div class="top-nav-bar">
+    <div class="user-greeting">
+        <i class="fa-solid fa-hand-wave"></i> {{ greeting_prefix }} {{ name | title }}!
+    </div>
+    <button class="theme-toggle" id="theme-toggle">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+</div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>ID</th>
-        <th>N</th>
-        <th>P</th>
-        <th>K</th>
-        <th>Temperature</th>
-        <th>Humidity</th>
-        <th>pH</th>
-        <th>Rainfall</th>
-        <th>Crop</th>
-        <th>Confidence</th>
-        <th>Timestamp</th>
-    </tr>
+<script>
+    const themeToggle = document.getElementById("theme-toggle");
+    const body = document.documentElement;
+    const icon = themeToggle.querySelector("i");
 
-    {% for log in logs %}
-    <tr>
-        <td>{{ log.id }}</td>
-        <td>{{ log.N }}</td>
-        <td>{{ log.P }}</td>
-        <td>{{ log.K }}</td>
-        <td>{{ log.temperature }}</td>
-        <td>{{ log.humidity }}</td>
-        <td>{{ log.ph }}</td>
-        <td>{{ log.rainfall }}</td>
-        <td>{{ log.predicted_crop }}</td>
-        <td>{{ log.confidence }}</td>
-        <td>{{ log.timestamp }}</td>
-    </tr>
-    {% endfor %}
+    // Check LocalStorage on page load
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.setAttribute("data-theme", "dark");
+        icon.classList.replace("fa-moon", "fa-sun");
+    }
 
-</table>
+    // Toggle button logic
+    themeToggle.addEventListener("click", () => {
+        if (document.body.getAttribute("data-theme") === "dark") {
+            document.body.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light");
+            icon.classList.replace("fa-sun", "fa-moon");
+        } else {
+            document.body.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+            icon.classList.replace("fa-moon", "fa-sun");
+        }
+    });
+</script>
 
-<br><br>
+<div class="dashboard-wrapper">
+    <h1 class="dashboard-header"><i class="fa-solid fa-chart-pie"></i> My Prediction Analytics</h1>
 
-<a href="/download_csv">Download CSV</a>
-<br>
-<a href="/download_pdf">Download PDF</a>
-<br><br>
-<a href="/">Go Back</a>
+    {% if logs %}
+    <div class="charts-container">
+        <div class="chart-box">
+            <h3 style="color: #444; margin-bottom: 20px; font-size: 20px;">My Predicted Crops Distribution</h3>
+            <div style="position: relative; height: 320px; width: 100%; display: flex; justify-content: center;">
+                <canvas id="userCropChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-box">
+            <h3 style="color: #444; margin-bottom: 20px; font-size: 20px;">Global Market Crop Data</h3>
+            <div style="display: flex; align-items: center; justify-content: center; height: 320px;">
+                <img src="/static/class_distribution.png" alt="Global Crop Distribution" style="max-width: 100%; max-height: 100%; border-radius: 8px; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div style="text-align: right; margin-bottom: 15px;">
+            <form action="/clear-logs" method="post" onsubmit="return confirm('Are you sure you want to delete ALL logs?');">
+                <button type="submit" class="btn btn-pdf" style="padding: 8px 15px; font-size: 12px;"><i class="fa-solid fa-trash"></i> Clear All Logs</button>
+            </form>
+        </div>
+
+        <table>
+            <tr>
+                <th>S.No.</th>
+                <th>Region</th> 
+                <th>N-P-K</th>  
+                <th>Temp</th>
+                <th>Humid</th>
+                <th>pH</th>
+                <th>Rain</th>
+                <th>Predicted Crop</th>
+                <th>Confidence</th>
+                <th>Actions</th> 
+            </tr>
+
+            {% for log in logs %}
+            <tr>
+                <td style="font-weight: bold; color: #666;">{{ loop.index }}</td>
+                <td style="color: #1976d2; font-weight: bold;">{{ log.region if log.region else 'N/A' }}</td>
+                <td style="font-size: 13px;">{{ log.N }} | {{ log.P }} | {{ log.K }}</td>
+                <td>{{ log.temperature }}°C</td>
+                <td>{{ log.humidity }}%</td>
+                <td>{{ log.ph }}</td>
+                <td>{{ log.rainfall }}mm</td>
+                <td><strong style="color: #2e7d32; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; text-transform: capitalize;">{{ log.predicted_crop }}</strong></td>
+                <td>{{ log.confidence }}%</td>
+                
+                <td style="display: flex; gap: 10px; justify-content: center;">
+                    <a href="/view-log/{{ log.id }}" class="btn" style="background: #1976d2; padding: 6px 10px; font-size: 12px;" title="View Result"><i class="fa-solid fa-eye"></i></a>
+                    <form action="/delete-log/{{ log.id }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this prediction?');">
+                        <button type="submit" class="btn" style="background: #d32f2f; padding: 6px 10px; font-size: 12px; cursor: pointer;" title="Delete Log"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="action-buttons">
+        <a href="/download_csv" class="btn btn-csv"><i class="fa-solid fa-file-csv"></i> Download CSV</a>
+        <a href="/analytics" class="btn" style="background-color: #1976d2;"><i class="fa-solid fa-brain"></i> View ML Visualizations</a>
+        <a href="/download_pdf" class="btn btn-pdf"><i class="fa-solid fa-file-pdf"></i> Download PDF</a>
+        <a href="/dashboard" class="btn btn-back"><i class="fa-solid fa-arrow-left"></i> Go Back</a>
+    </div>
+
+    <script>
+        // FIXED JS ERROR: Removed 'let' declaration from inside the Jinja loop
+        const cropCounts = {};
+        {% for log in logs %}
+            cropCounts["{{ log.predicted_crop | capitalize }}"] = (cropCounts["{{ log.predicted_crop | capitalize }}"] || 0) + 1;
+        {% endfor %}
+
+        // Chart.js render karna
+        const ctx = document.getElementById('userCropChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(cropCounts),
+                datasets: [{
+                    data: Object.values(cropCounts),
+                    backgroundColor: [
+                        '#2e7d32', '#ff9800', '#1976d2', '#d32f2f', '#7b1fa2', '#0097a7', '#fbc02d', '#5d4037', '#c2185b', '#388e3c'
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%', // Thoda premium look
+                plugins: {
+                    legend: { position: 'right', labels: { font: { size: 13, family: 'sans-serif' } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) { label += ': '; }
+                                label += context.raw + ' times predicted';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-folder-open" style="font-size: 60px; color: #ccc; margin-bottom: 20px;"></i>
+        <h2 style="color: #555;">No predictions found!</h2>
+        <p style="color: #888; margin-bottom: 20px;">You haven't made any crop predictions yet.</p>
+        <a href="/dashboard" class="btn btn-csv"><i class="fa-solid fa-wand-magic-sparkles"></i> Predict Your First Crop</a>
+    </div>
+    {% endif %}
+
+</div>
 
 </body>
 </html>

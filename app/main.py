@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Request, Form, Depends
+from fastapi import FastAPI, Request, Form, Depends, Cookie
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from .database import engine, Base, SessionLocal
 from .models import PredictionLog, User
 from .prediction_service import predict_crop
-from .visualization import generate_class_distribution
 from .auth import hash_password, verify_password
 from fastapi.staticfiles import StaticFiles
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -62,6 +61,8 @@ def get_db():
 # ----------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
+    if request.cookies.get("user_id"):
+        return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse("login.html", {"request": request})
 
 # ----------------------------
@@ -69,11 +70,15 @@ def home(request: Request):
 # ----------------------------
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
+    if request.cookies.get("user_id"):
+        return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/register", response_class=HTMLResponse)
 async def register(
     request: Request,
+    first_name: str = Form(...),
+    last_name: str = Form(...),
     username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
@@ -86,54 +91,40 @@ async def register(
     if domain in BLOCKED_DOMAINS:
         return templates.TemplateResponse("register.html", {"request": request, "error": "Temporary email addresses are not allowed."})
 
-    # Check for existing records
     existing_email = db.query(User).filter(User.email == email).first()
     existing_username = db.query(User).filter(User.username == username).first()
 
-    if existing_email:
-        if existing_email.is_verified:
-            # Strictly One Email = One User
-            return templates.TemplateResponse("register.html", {"request": request, "error": "This email is already registered. Please login."})
-        else:
-            # Overwrite unverified dummy user instead of blocking
-            user_to_update = existing_email
-    else:
-        if existing_username:
-            if existing_username.is_verified:
-                return templates.TemplateResponse("register.html", {"request": request, "error": "Username is already taken."})
-            else:
-                # Clean up abandoned unverified username to free it up
-                db.delete(existing_username)
-                db.commit()
-        
-        # Create fresh dummy user
-        user_to_update = User(email=email, role="farmer", is_verified=False)
-        db.add(user_to_update)
-
-    # Generate OTP
-    otp = str(random.randint(100000, 999999))
-
-    # Update credentials and OTP details
-    user_to_update.username = username
-    user_to_update.password = hash_password(password)
-    user_to_update.otp_code = otp
-    user_to_update.otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+    if existing_email and existing_email.is_verified:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already registered."})
     
+    if existing_username and existing_username.is_verified:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Username taken."})
+
+    user = existing_email if existing_email else User(email=email, role="farmer", is_verified=False)
+    user.first_name = first_name.strip()
+    user.last_name = last_name.strip()
+    user.username = username
+    user.password = hash_password(password)
+    
+    otp = str(random.randint(100000, 999999))
+    user.otp_code = otp
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+    
+    if not existing_email:
+        db.add(user)
     db.commit()
 
-    # Send Email Asynchronously
     message = MessageSchema(
         subject="Your OTP Verification Code",
         recipients=[email],
-        body=f"Your OTP is: {otp}\nValid for 5 minutes.",
+        body=f"Your OTP is: {otp}",
         subtype="plain"
     )
-
     try:
         fm = FastMail(conf)
         await fm.send_message(message)
     except Exception as e:
-        print("Email sending failed:", e)
+        print("Email failed:", e)
 
     return templates.TemplateResponse("otp_verify.html", {"request": request, "email": email})
 
@@ -229,6 +220,8 @@ def check_email(email: str, db: Session = Depends(get_db)):
 # ----------------------------
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
+    if request.cookies.get("user_id"):
+        return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
@@ -245,16 +238,37 @@ def login(
 
     if not user.is_verified:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Please verify your email before logging in."})
+    
+    response = RedirectResponse(url="/dashboard", status_code=303)
+    response.set_cookie(key="user_id", value=str(user.id), httponly=True)
+    return response
 
-    return RedirectResponse(url="/dashboard", status_code=303)
+@app.get("/logout")
+def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("user_id") # Cookie delete kar di
+    return response
 
 # ----------------------------
 # DASHBOARD
 # ----------------------------
 @app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
-    generate_class_distribution()
-    return templates.TemplateResponse("index.html", {"request": request})
+def dashboard(request: Request, db: Session = Depends(get_db)):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    
+    # Logic: Agar koi log nahi hai to "Welcome", warna "Welcome Back"
+    has_logs = db.query(PredictionLog).filter(PredictionLog.user_id == int(user_id)).first()
+    prefix = "Welcome to the family," if not has_logs else "Welcome back,"
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request, 
+        "name": f"{user.first_name} {user.last_name}",
+        "greeting_prefix": prefix
+    })
 
 # ----------------------------
 # FORGOT PASSWORD FLOW
@@ -340,38 +354,121 @@ def predict(
     humidity: float = Form(...),
     ph: float = Form(...),
     rainfall: float = Form(...),
+    region: str = Form(...),
+    state: str = Form(...),
+    user_id: str = Cookie(None),
     db: Session = Depends(get_db)
 ):
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
     input_data = {
-        "N": N, "P": P, "K": K,
+        "N": N,
+        "P": P,
+        "K": K,
         "temperature": temperature,
         "humidity": humidity,
-        "ph": ph, "rainfall": rainfall
+        "ph": ph,
+        "rainfall": rainfall,
+        "region": region,
+        "state": state,
+        "market_price": 0,
+        "production_cost": 0
     }
-
     result = predict_crop(input_data)
-
-    log = PredictionLog(
+    new_log = PredictionLog(
         N=N, P=P, K=K,
         temperature=temperature,
         humidity=humidity,
-        ph=ph, rainfall=rainfall,
+        ph=ph,
+        rainfall=rainfall,
+        region=region,
+        state=state,
+        market_price=result.get("market_price", 0),
+        production_cost=result.get("production_cost", 0),
         predicted_crop=result["top1"],
-        confidence=result["confidence"]
+        confidence=result["confidence"],
+        risk_score=result["risk_score"],
+        expected_profit=result["expected_profit"],
+        user_id=int(user_id)
     )
-
-    db.add(log)
+    db.add(new_log)
     db.commit()
 
+    user = db.query(User).filter(User.id == int(user_id)).first()
     return templates.TemplateResponse("result.html", {"request": request, "result": result})
 
 # ----------------------------
 # VIEW & DOWNLOAD LOGS
 # ----------------------------
 @app.get("/logs", response_class=HTMLResponse)
-def view_logs(request: Request, db: Session = Depends(get_db)):
-    logs = db.query(PredictionLog).all()
-    return templates.TemplateResponse("logs.html", {"request": request, "logs": logs})
+def view_logs(request: Request, user_id: str = Cookie(None), db: Session = Depends(get_db)):
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)   
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    logs = db.query(PredictionLog).filter(PredictionLog.user_id == int(user_id)).all()
+    return templates.TemplateResponse("logs.html", {"request": request, "logs": logs, "username": user.username})
+# ----------------------------
+# ML ANALYTICS DASHBOARD
+# ----------------------------
+@app.get("/analytics", response_class=HTMLResponse)
+def analytics_page(request: Request, user_id: str = Cookie(None), db: Session = Depends(get_db)): # db add kiya
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303) 
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    return templates.TemplateResponse("analytics.html", {"request": request, "username": user.username})
+# ----------------------------
+# VIEW SINGLE LOG (Re-run prediction to show result)
+# ----------------------------
+@app.get("/view-log/{log_id}", response_class=HTMLResponse)
+def view_single_log(request: Request, log_id: int, db: Session = Depends(get_db)):
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    log = db.query(PredictionLog).filter(PredictionLog.id == log_id, PredictionLog.user_id == int(user_id)).first()
+    if not log:
+        return RedirectResponse(url="/logs", status_code=303)
+
+    # Re-run the exact same prediction using saved data
+    input_data = {
+        "N": log.N, "P": log.P, "K": log.K,
+        "temperature": log.temperature, "humidity": log.humidity,
+        "ph": log.ph, "rainfall": log.rainfall,
+        "region": log.region or "North",
+        "state": log.state or "",
+        "market_price": log.market_price or 0, 
+        "production_cost": log.production_cost or 0
+    }
+    result = predict_crop(input_data)
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    return templates.TemplateResponse("result.html", {"request": request, "result": result})
+
+# ----------------------------
+# DELETE SINGLE LOG
+# ----------------------------
+@app.post("/delete-log/{log_id}")
+def delete_log(log_id: int, request: Request, db: Session = Depends(get_db)):
+    user_id = request.cookies.get("user_id")
+    if user_id:
+        log = db.query(PredictionLog).filter(PredictionLog.id == log_id, PredictionLog.user_id == int(user_id)).first()
+        if log:
+            db.delete(log)
+            db.commit()
+    return RedirectResponse(url="/logs", status_code=303)
+
+# ----------------------------
+# CLEAR ALL LOGS
+# ----------------------------
+@app.post("/clear-logs")
+def clear_logs(request: Request, db: Session = Depends(get_db)):
+    user_id = request.cookies.get("user_id")
+    if user_id:
+        db.query(PredictionLog).filter(PredictionLog.user_id == int(user_id)).delete()
+        db.commit()
+    return RedirectResponse(url="/logs", status_code=303)
+
 
 @app.get("/download_csv")
 def download_csv(db: Session = Depends(get_db)):

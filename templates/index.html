@@ -1,80 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crop Recommendation System</title>
-    
+
     <link rel="stylesheet" href="/static/style.css?v=4">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
-
-<div class="auth-wrapper">
-    <div class="auth-container index-container">
-
-        <h1 style="margin-bottom: 10px; color: #2e7d32;"><i class="fa-solid fa-seedling"></i> Precision Agriculture</h1>
-        <p style="text-align: center; color: #555; margin-bottom: 30px; font-size: 15px;">
-            Enter your soil and climate parameters below to get the best crop recommendation.
-        </p>
-
-        <form action="/predict" method="post">
-            
-            <div class="form-grid">
-                <div class="input-group">
-                    <label><i class="fa-solid fa-leaf"></i> Nitrogen (N)</label>
-                    <input type="number" step="1" name="N" min="0" max="140" placeholder="e.g., 50" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 0 to 140</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-flask"></i> Phosphorus (P)</label>
-                    <input type="number" step="1" name="P" min="5" max="145" placeholder="e.g., 45" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 5 to 145</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-vial"></i> Potassium (K)</label>
-                    <input type="number" step="1" name="K" min="5" max="205" placeholder="e.g., 40" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 5 to 205</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-vial-virus"></i> Soil pH</label>
-                    <input type="number" step="0.1" name="ph" min="3.5" max="9.9" placeholder="e.g., 6.5" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Standard range: 3.5 to 9.9 (Scale)</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-temperature-half"></i> Temperature (°C)</label>
-                    <input type="number" step="0.1" name="temperature" min="8" max="45" placeholder="e.g., 25.5" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 8°C to 45°C</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-droplet"></i> Humidity (%)</label>
-                    <input type="number" step="0.1" name="humidity" min="14" max="100" placeholder="e.g., 65.0" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 14% to 100%</span>
-                </div>
-
-                <div class="input-group">
-                    <label><i class="fa-solid fa-cloud-showers-heavy"></i> Rainfall (mm)</label>
-                    <input type="number" step="0.1" name="rainfall" min="20" max="300" placeholder="e.g., 150.0" required autocomplete="off">
-                    <span class="helper-text"><i class="fa-solid fa-circle-info"></i> Valid range: 20mm to 300mm</span>
-                </div>
-            </div>
-
-            <button type="submit" class="predict-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Predict Best Crop</button>
-            
-        </form>
-
-        <div class="logs-link-container">
-            <a href="/logs" class="logs-link"><i class="fa-solid fa-clock-rotate-left"></i> View Previous Prediction Logs</a>
-        </div>
-
+<div class="top-nav-bar">
+    <div class="user-greeting">
+        <i class="fa-solid fa-hand-wave"></i> {{ greeting_prefix }} {{ name | title }}!
     </div>
+    <button class="theme-toggle" id="theme-toggle">
+        <i class="fa-solid fa-moon"></i>
+    </button>
 </div>
+
+<script>
+    const themeToggle = document.getElementById("theme-toggle");
+    const body = document.documentElement;
+    const icon = themeToggle.querySelector("i");
+
+    // Check LocalStorage on page load
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.setAttribute("data-theme", "dark");
+        icon.classList.replace("fa-moon", "fa-sun");
+    }
+
+    // Toggle button logic
+    themeToggle.addEventListener("click", () => {
+        if (document.body.getAttribute("data-theme") === "dark") {
+            document.body.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light");
+            icon.classList.replace("fa-sun", "fa-moon");
+        } else {
+            document.body.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+            icon.classList.replace("fa-moon", "fa-sun");
+        }
+    });
+</script>
+    <div class="auth-wrapper">
+        <div class="auth-container index-container">
+
+            <h1 style="margin-bottom:10px;color:#2e7d32;">
+                <i class="fa-solid fa-seedling"></i> Precision Agriculture
+            </h1>
+
+            <p style="text-align:center;color:#555;margin-bottom:30px;font-size:15px;">
+                Enter your soil, climate, and economic parameters below.
+            </p>
+
+            <form action="/predict" method="post">
+
+                <div class="form-grid">
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-leaf"></i> Nitrogen (N)
+                        </label>
+                        <input type="number" step="1" name="N" min="0" max="140"
+                            placeholder="e.g., 50" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-flask"></i> Phosphorus (P)
+                        </label>
+                        <input type="number" step="1" name="P" min="5" max="145"
+                            placeholder="e.g., 40" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-cubes"></i> Potassium (K)
+                        </label>
+                        <input type="number" step="1" name="K" min="5" max="205"
+                            placeholder="e.g., 30" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-temperature-half"></i> Temperature (°C)
+                        </label>
+                        <input type="number" step="0.1" name="temperature"
+                            min="8" max="45" placeholder="e.g., 25.5" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-droplet"></i> Humidity (%)
+                        </label>
+                        <input type="number" step="0.1" name="humidity"
+                            min="14" max="100" placeholder="e.g., 65.0" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-vial"></i> Soil pH
+                        </label>
+                        <input type="number" step="0.1" name="ph"
+                            min="3.5" max="9.9" placeholder="e.g., 6.5" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-cloud-showers-heavy"></i> Rainfall (mm)
+                        </label>
+                        <input type="number" step="0.1" name="rainfall"
+                            min="20" max="300" placeholder="e.g., 150.0" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-map-location-dot"></i> Region
+                        </label>
+
+                        <select name="region" id="region" required>
+                            <option value="" disabled selected>Select Region</option>
+                            <option value="North">North</option>
+                            <option value="South">South</option>
+                            <option value="East">East</option>
+                            <option value="West">West</option>
+                            <option value="Central">Central</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <i class="fa-solid fa-location-dot"></i> State
+                        </label>
+
+                        <select name="state" id="state" required>
+                            <option value="">Select State</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="predict-btn" style="margin-top:20px;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Best Crop
+                </button>
+
+                <div style="display:flex;justify-content:space-between;margin-top:20px;padding:0 10px;font-size:15px;">
+
+                    <a href="/logs"
+                        style="color:#2e7d32;text-decoration:none;font-weight:bold;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        View My Predictions
+                    </a>
+
+                    <a href="/logout"
+                        style="color:#d32f2f;text-decoration:none;font-weight:bold;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Logout
+                    </a>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+<script>
+
+const regionStates = {
+
+    North: [
+        "Punjab",
+        "Haryana",
+        "Uttar Pradesh",
+        "Himachal Pradesh",
+        "Uttarakhand",
+        "Delhi",
+        "Jammu and Kashmir"
+    ],
+
+    South: [
+        "Tamil Nadu",
+        "Kerala",
+        "Karnataka",
+        "Andhra Pradesh",
+        "Telangana"
+    ],
+
+    East: [
+        "West Bengal",
+        "Bihar",
+        "Jharkhand",
+        "Odisha"
+    ],
+
+    West: [
+        "Maharashtra",
+        "Gujarat",
+        "Rajasthan",
+        "Goa"
+    ],
+
+    Central: [
+        "Madhya Pradesh",
+        "Chhattisgarh"
+    ]
+
+};
+
+const regionSelect = document.getElementById("region");
+const stateSelect = document.getElementById("state");
+
+regionSelect.addEventListener("change", function () {
+
+    const states = regionStates[this.value];
+
+    stateSelect.innerHTML = "<option value=''>Select State</option>";
+
+    states.forEach(function (state) {
+
+        const option = document.createElement("option");
+
+        option.value = state;
+        option.textContent = state;
+
+        stateSelect.appendChild(option);
+
+    });
+
+});
+
+</script>
 
 </body>
 </html>

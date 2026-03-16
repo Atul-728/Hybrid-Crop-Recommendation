@@ -24,3 +24,10 @@ shap
 joblib
 reportlab
 fastapi-mail
+pytorch_tabnet
+ngboost
+shap
+imbalanced-learn
+category_encoders
+requests
+beautifulsoup4
