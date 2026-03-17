@@ -7,8 +7,10 @@ passlib
 bcrypt==4.0.1
 pandas
 numpy
+scipy
 matplotlib
 seaborn
+psycopg2-binary
 
 scikit-learn
 xgboost

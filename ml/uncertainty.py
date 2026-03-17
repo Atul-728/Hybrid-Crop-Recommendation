@@ -5,11 +5,27 @@ from scipy.stats import entropy
 
 ARTIFACTS_PATH = os.path.join("ml", "artifacts")
 
+# Cached uncertainty models loader to avoid loading models on every call
+_uncertainty_models = None
+
 def load_uncertainty_models():
-    # Load NGBoost and TabNet for uncertainty estimation
-    ngboost_model = joblib.load(os.path.join(ARTIFACTS_PATH, "model_ngboost.pkl"))
-    tabnet_model = joblib.load(os.path.join(ARTIFACTS_PATH, "model_tabnet.pkl"))
-    return ngboost_model, tabnet_model
+    """
+    Lazy load NGBoost and TabNet once and keep in memory.
+    Returns (ngboost_model, tabnet_model) or (None, None) if load fails.
+    """
+    global _uncertainty_models
+    if _uncertainty_models is not None:
+        return _uncertainty_models
+
+    try:
+        ngboost_model = joblib.load(os.path.join(ARTIFACTS_PATH, "model_ngboost.pkl"))
+        tabnet_model = joblib.load(os.path.join(ARTIFACTS_PATH, "model_tabnet.pkl"))
+        _uncertainty_models = (ngboost_model, tabnet_model)
+    except Exception as e:
+        # don't crash the whole app at import/startup; log the problem
+        print("Warning: failed to load uncertainty models:", e)
+        _uncertainty_models = (None, None)
+    return _uncertainty_models
 
 def calculate_uncertainty(X_sample):
     ngboost_model, tabnet_model = load_uncertainty_models()
