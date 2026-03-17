@@ -146,7 +146,7 @@ Example:
 MAIL_USERNAME=username  
 MAIL_PASSWORD=your_app_password  
 MAIL_FROM=your_email@gmail.com  
-
+MANDI_API_KEY=xyz
 These credentials are used for sending automated email notifications.
 
 ---
