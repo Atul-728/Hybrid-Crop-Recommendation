@@ -16,8 +16,6 @@ lightgbm
 catboost
 
 torch
-pytorch-tabnet
-
 ngboost
 shap
 

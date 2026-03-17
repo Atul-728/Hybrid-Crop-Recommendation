@@ -27,6 +27,11 @@ body {
 }
 
 .auth-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 65vh;
+
     background: white;
     padding: 40px;
     width: 95%;
@@ -557,7 +562,15 @@ body[data-theme="dark"] {
         margin: 20px auto;
         padding: 20px !important;
     }
-
+/* @media (max-width: 600px) {
+    .auth-container {
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 40px 20px;
+    }
+} */
     .top-nav-bar {
         left: 10px;
         right: 10px;
