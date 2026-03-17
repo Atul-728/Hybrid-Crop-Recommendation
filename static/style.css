@@ -16,7 +16,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .auth-wrapper {
@@ -26,12 +26,8 @@ body {
     min-height: 100vh;
 }
 
+/* Base style for Desktop/Laptops - Floating Card */
 .auth-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 65vh;
-
     background: white;
     padding: 40px;
     width: 95%;
@@ -41,6 +37,7 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     animation: fadeIn 0.6s ease;
     transition: 0.3s;
+    height: auto; /* Reverted to normal for desktop */
 }
 
 .auth-container:hover {
@@ -497,7 +494,7 @@ tr:hover {
 
 body[data-theme="dark"] { 
     background-color: #121212 !important; 
-    background-image: none !important; /* Gradient hatane ke liye zaroori hai */
+    background-image: none !important; 
     color: #e0e0e0 !important;
 }
 
@@ -534,7 +531,6 @@ body[data-theme="dark"] {
 
 [data-theme="dark"] .sub-heading, [data-theme="dark"] .tagline { color: #aaa !important; }
 
-/* Greeting styling update */
 .user-greeting {
     font-size: 16px;
     font-weight: 600;
@@ -556,21 +552,14 @@ body[data-theme="dark"] {
     color: #333 !important; 
 }
 
-/* Mobile responsiveness tweaks */
+
+/* --- MOBILE RESPONSIVENESS AND NATIVE EDGE-TO-EDGE APP LOOK --- */
 @media (max-width: 768px) {
     .index-container {
         margin: 20px auto;
         padding: 20px !important;
     }
-/* @media (max-width: 600px) {
-    .auth-container {
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-        padding: 40px 20px;
-    }
-} */
+
     .top-nav-bar {
         left: 10px;
         right: 10px;
@@ -580,5 +569,36 @@ body[data-theme="dark"] {
     .user-greeting {
         font-size: 14px;
         padding: 8px 14px;
+    }
+
+    /* Edge-to-Edge logic for Login/Register/OTP on mobile */
+    body, .auth-wrapper, .page-center {
+        background: #ffffff !important; 
+    }
+
+    .auth-container {
+        width: 100% !important;       
+        max-width: 100% !important;
+        min-height: 100vh !important; 
+        border-radius: 0 !important;  
+        box-shadow: none !important;  
+        margin: 0 !important;
+        padding: 80px 25px 30px 25px !important; 
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Pushes content towards the top like a real app */
+    }
+
+    /* Dark Mode mobile edge-to-edge support */
+    body[data-theme="dark"], 
+    [data-theme="dark"] .auth-wrapper, 
+    [data-theme="dark"] .page-center {
+        background: #121212 !important;
+    }
+    
+    [data-theme="dark"] .auth-container {
+        background: #121212 !important;
+        border: none !important;
     }
 }

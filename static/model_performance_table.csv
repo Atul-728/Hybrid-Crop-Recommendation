@@ -1,0 +1,7 @@
+Model,Accuracy,F1 Score
+Random Forest,0.997297,0.997272
+XGBoost,0.989189,0.989197
+LightGBM,0.989189,0.989221
+CatBoost,1.0,1.0
+TabNet,0.967568,0.967569
+Ensemble,1.0,1.0
