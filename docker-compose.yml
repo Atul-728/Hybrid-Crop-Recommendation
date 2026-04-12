@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Local PostgreSQL database (Plan B when Railway expires)
+  db:
+    image: postgres:15-alpine
+    container_name: cropdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localpass
+      POSTGRES_DB: cropdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # The FastAPI application
+  app:
+    build: .
+    container_name: croporacle-app
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env.local
+    environment:
+      DATABASE_URL: postgresql://postgres:localpass@db:5432/cropdb
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:

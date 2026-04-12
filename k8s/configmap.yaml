@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: croporacle-config
+  namespace: default
+data:
+  PORT: "8080"
+  APP_BASE_URL: "http://localhost:30080"

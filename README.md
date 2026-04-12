@@ -1,207 +1,101 @@
-# Hybrid Crop Recommendation System
+# CropOracle — Uncertainty-Aware Hybrid Crop AI
 
-## Overview
+CropOracle is a full-stack, machine-learning-powered agricultural platform that predicts the most suitable crop to cultivate based on soil health and climate conditions. 
 
-The Hybrid Crop Recommendation System is a machine learning based application designed to recommend the most suitable crop to cultivate based on soil nutrients and environmental conditions.
-
-The system analyzes key agricultural parameters such as nitrogen (N), phosphorus (P), potassium (K), temperature, humidity, pH level, and rainfall to predict the optimal crop.
-
-Unlike traditional single model systems, this project implements a hybrid ensemble architecture combining multiple machine learning models with uncertainty estimation and explainability.
-
-The backend is built using FastAPI and integrates multiple machine learning models for prediction.
+Unlike traditional platforms that use a single model, CropOracle relies on a **Stacked Hybrid Ensemble** (XGBoost, CatBoost, LightGBM, Random Forest, NGBoost) to deliver **Uncertainty-Aware** predictions and **GenAI-powered** location autofill.
 
 ---
 
-## Key Features
+## 🏗️ Project Architecture & DevOps Stack
 
-• Hybrid ensemble model for crop prediction  
-• Multiple ML algorithms including gradient boosting models and deep learning  
-• TabNet model for deep learning based tabular learning  
-• Stacked ensemble architecture for improved prediction accuracy  
-• Monte Carlo based uncertainty estimation for prediction confidence  
-• SHAP explainability for model interpretability  
-• FastAPI backend for scalable API deployment  
-• Email notification support  
-• Data driven agricultural recommendations
+This project is fully containerized and instrumented with a modern DevOps stack designed for local execution and Kubernetes deployment.
 
----
-
-## Machine Learning Architecture
-
-The system uses a multi model hybrid architecture combining several models to improve prediction robustness.
-
-Base models used:
-
-• Random Forest  
-• XGBoost  
-• LightGBM  
-• CatBoost  
-• TabNet
-
-These models are combined using a stacked ensemble approach where predictions from base models are used by a meta learner to produce the final recommendation.
-
-Additional components:
-
-• SHAP (SHapley Additive Explanations) for model interpretability  
-• Monte Carlo based uncertainty estimation to evaluate prediction confidence
-
-This architecture allows the system to produce accurate, explainable, and reliable crop recommendations.
+### Tech Stack
+- **Backend**: Python 3, FastAPI, SQLAlchemy, Google OAuth Authlib
+- **Frontend**: Vanilla HTML/CSS/JS (Dark Glassmorphism Design System)
+- **Database**: PostgreSQL (Docker) / SQLite (Fallback)
+- **Monitoring**: Prometheus & Grafana
+- **CI/CD**: Jenkins, Docker, Kubernetes (Minikube)
 
 ---
 
-## Technologies Used
+## 🚀 How to Run the Project (Local DevOps)
 
-Backend
+You need Docker Desktop and Minikube installed.
 
-• Python  
-• FastAPI  
-• Uvicorn  
+### 1. The Core App + Database
+We use Docker Compose to run the PostgreSQL database and the FastAPI application together.
+```bash
+# In the root directory:
+docker-compose up -d --build
+```
+- App validates heavily against `.env.local` for local execution.
+- Website runs at: `http://localhost:8081` (assuming external port maps to 8081 or 8080 depending on env).
 
-Machine Learning
+### 2. The Monitoring Stack
+Prometheus scrapes the FastAPI `/metrics` endpoint and Node Exporter. Grafana visualizes it.
+```bash
+# Inside the root directory:
+docker-compose -f monitoring/docker-compose.monitoring.yml up -d
+```
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000` (Login: `admin` / `admin`)
 
-• Scikit-learn  
-• XGBoost  
-• LightGBM  
-• CatBoost  
-• TabNet  
+### 3. Kubernetes / Minikube
+For Kubernetes-based deployment.
+```bash
+# Start Minikube
+minikube start --driver=docker
 
-Data Processing
+# Apply Kubernetes configurations
+kubectl apply -f k8s/postgres-pvc.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/deployment.yaml
 
-• Pandas  
-• NumPy  
+# Create a proxy/tunnel (if needed in a new terminal)
+minikube tunnel
+```
 
-Explainability
-
-• SHAP
-
-Utilities
-
-• Python Dotenv  
-• ReportLab
-
----
-
-## Project Structure
-
-app/
-    main.py
-    predict_api.py
-    price_fallback.py
-    crop_mapping.py
-
-ml/
-    preprocess.py
-    train_models.py
-    ensemble.py
-    explainability.py
-    uncertainty.py
-    tabnet_model.py
-
-models/
-    model_rf.pkl
-    model_xgb.pkl
-    model_lgbm.pkl
-    model_catboost.pkl
-    stacked_model.pkl
-
-static/
-templates/
-data/
-requirements.txt
+### 4. Jenkins Pipeline
+Start Jenkins using Docker if not already running natively.
+```bash
+# Get the initial admin password from the docker container (if running via docker)
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+# Jenkins is mapped to: http://localhost:8082
+```
 
 ---
 
-## Recommended Setup
+## 🌊 Flow from End User to Grafana Metrics
 
-Create a virtual environment before running the project.
+When a user visits the CropOracle web app and clicks around (e.g., clicking the "Predict" button or navigating pages), a precise flow of data triggers changes in your Grafana CPU and Memory graphs:
 
-Create virtual environment
+1. **User Action**: The user fills out the Prediction Form (`predict.html`) and hits "Generate AI Prediction" or logs into the app.
+2. **FastAPI Request processing**: The browser sends an HTTP POST request to the FastAPI backend running in its Docker container.
+3. **CPU Spike**: FastAPI must unpack the payload, run the input through the complex 5-model Machine Learning Ensemble, run Database operations (SQLAlchemy), and format the response. This heavy mathematical operation causes an immediate spike in CPU usage for the Python process.
+4. **Memory Allocation**: To run those models, RAM is actively allocated and held, causing a bump in memory usage.
+5. **Prometheus Scraping**: Every 15 seconds, Prometheus reaches out to `node_exporter` (metrics of the host machine itself) and the FastAPI `/metrics` endpoint. It pulls the newly elevated CPU usage metrics, RAM usage metrics, and overall HTTP Request totals.
+6. **Grafana Visualization**: Grafana continuously polls Prometheus for this time-series data. The line graphs instantly update to reflect the spike, proving the monitoring stack is capturing real-time app load dynamically.
 
-python -m venv venv
-
-Activate virtual environment
-
-Windows
-
-venv\Scripts\activate
-
-Linux / Mac
-
-source venv/bin/activate
-
----
-
-## Install Dependencies
-
-pip install -r requirements.txt
+### Grafana Queries to Try
+To visualize the traffic and load on Grafana, go to **Explore**:
+- **Total HTTP Requests**: `http_requests_total`
+- **Request Rate (load per second)**: `rate(http_requests_total[5m])`
+- **CPU Usage**: `rate(process_cpu_seconds_total[1m])`
+- **Memory Consumption**: `process_resident_memory_bytes`
 
 ---
 
-## Environment Variables
+## 🔄 Verification & Page Logic Checks
 
-Create a file named `.env` in the root directory.
-
-Example:
-
-MAIL_USERNAME=username  
-MAIL_PASSWORD=your_app_password  
-MAIL_FROM=your_email@gmail.com  
-MANDI_API_KEY=xyz
-These credentials are used for sending automated email notifications.
+1. **Home & About Pages (`/`, `/about`)**: Accessible entirely **without login**. Kept open by design so users can learn about the product before creating an account. The Navbar intelligently locks `Predict`, `Dashboard`, and `Logs` with lock icons when unauthenticated.
+2. **Google OAuth**: Verified and functional. Handled correctly inside `main.py` routing using the Google Auth flow. Needs the redirect URI `http://localhost:8081/auth/google` whitelisted in the GCP Console.
+3. **Scripts Folder**: Was successfully analyzed; contained an old `setup_local.py` file which unnecessarily overwrote `.env` files. **Safely Deleted.**
+4. **Frontend Redesign**: Home, Login, Signup, OTP Verification, Complete Google-Signup, and Predict pages conform strictly to the premium `.agent/frontend-specialist` design principles (Dark Mode, Sage accents, Glassmorphism, Clean typography).
 
 ---
 
-## Generate Gmail App Password
-
-Google requires an App Password instead of your Gmail password.
-
-Steps
-
-1 Enable 2 Step Verification in your Google account  
-2 Open the App Password page  
-
-https://myaccount.google.com/apppasswords
-
-Select
-
-App → Mail  
-Device → Other  
-Name → Crop System  
-
-Google will generate a 16 character password.
-
-Use that password in the `.env` file.
-
----
-
-## Running the Project
-
-Run the FastAPI application using Uvicorn.
-
-Run on specific port
-
-uvicorn app.main:app --port 8081 --reload
-
-Run on default port
-
-uvicorn app.main:app --reload
-
-After starting the server the application will be available at
-
-http://127.0.0.1:8081
-
----
-
-## Future Improvements
-
-• Integration with real time agricultural market price APIs  
-• Deployment using Docker and Kubernetes  
-• Integration with cloud infrastructure such as AWS  
-• Mobile application support for farmers  
-
----
-
-## Author
-
-Atul Kumar  
-B.Tech Computer Science Engineering
+## 🔗 Related Documentation
+- `Jenkinsfile` - Contains the full 6-stage pipeline (Build, Lint, Secure, Deploy).
+- `docker-compose.yml` - Contains local development environment maps.

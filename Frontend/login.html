@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — CropOracle</title>
+    <meta name="description" content="Sign in to CropOracle — the uncertainty-aware AI crop recommendation system for Indian farmers.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-mid: #2d6a4f;
+            --sage: #52b788;
+            --lime: #95d5b2;
+            --charcoal: #1c1c1e;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
+
+        /* Background */
+        .bg {
+            position: fixed; inset: 0; z-index: 0;
+            background: 
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(82,183,136,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1208 0%, #1c1c1e 100%);
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 0 48px; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(28,28,30,0.7); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
+        .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-name em { color: var(--sage); font-style: normal; }
+        .nav-links { display: flex; align-items: center; gap: 8px; }
+        .nav-links a { text-decoration: none; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a.about-link { color: rgba(255,255,255,0.7); }
+        .nav-links a.about-link:hover { color: var(--sage); background: rgba(82,183,136,0.08); }
+        /* Disabled nav links (require login) */
+        .nav-links a.nav-locked {
+            color: rgba(255,255,255,0.25);
+            cursor: default;
+            pointer-events: none;
+        }
+        .nav-links .cta-btn {
+            background: var(--sage); color: var(--charcoal) !important;
+            font-weight: 700; padding: 9px 22px; border-radius: 8px;
+            pointer-events: all !important;
+            opacity: 1 !important;
+            color: var(--charcoal) !important;
+        }
+        .nav-links .cta-btn:hover { background: var(--lime) !important; transform: translateY(-1px); }
+
+        /* MAIN */
+        main {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 90px 24px 40px;
+        }
+
+        .auth-box {
+            width: 100%; max-width: 420px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.6);
+        }
+
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-header .icon { font-size: 40px; margin-bottom: 12px; }
+        .auth-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .auth-header p { font-size: 14px; color: rgba(255,255,255,0.45); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: rgba(255,255,255,0.4); margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: var(--white);
+            font-size: 15px; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.2s;
+        }
+        .form-group input:focus { border-color: var(--sage); background: rgba(82,183,136,0.06); }
+        .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+
+        .password-wrap { position: relative; }
+        .password-wrap input { padding-right: 46px; }
+        .eye-toggle {
+            position: absolute; right: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.3);
+            cursor: pointer; font-size: 15px;
+            transition: color 0.2s;
+        }
+        .eye-toggle:hover { color: var(--sage); }
+
+        .forgot-link {
+            text-align: right; margin-top: -8px; margin-bottom: 20px;
+        }
+        .forgot-link a { font-size: 13px; color: var(--sage); text-decoration: none; }
+        .forgot-link a:hover { text-decoration: underline; }
+
+        .btn-submit {
+            width: 100%; padding: 14px;
+            background: var(--sage); color: var(--charcoal);
+            font-size: 15px; font-weight: 800; font-family: 'Inter', sans-serif;
+            border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .btn-submit:hover { background: var(--lime); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(82,183,136,0.3); }
+
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0;
+            color: rgba(255,255,255,0.2); font-size: 13px;
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+
+        .google-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 13px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; color: rgba(255,255,255,0.8);
+            font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .google-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
+
+        .auth-footer-link {
+            text-align: center; margin-top: 24px;
+            font-size: 14px; color: rgba(255,255,255,0.4);
+        }
+        .auth-footer-link a { color: var(--sage); text-decoration: none; font-weight: 600; }
+        .auth-footer-link a:hover { text-decoration: underline; }
+
+        .msg-error {
+            background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.2);
+            color: #ff6b6b; border-radius: 8px; padding: 10px 14px;
+            font-size: 13px; margin-bottom: 16px;
+        }
+        .msg-success {
+            background: rgba(82,183,136,0.1); border: 1px solid rgba(82,183,136,0.2);
+            color: var(--sage); border-radius: 8px; padding: 10px 14px;
+            font-size: 13px; margin-bottom: 16px;
+        }
+
+        /* Theme toggle */
+        .theme-btn {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px; padding: 7px 10px;
+            color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px;
+        }
+        .theme-btn:hover { background: rgba(255,255,255,0.12); }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- NAV with all links, but locked except About -->
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-name">Crop<em>Oracle</em></div>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-locked">Home <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
+        <a href="/about" class="about-link">About</a>
+        <a href="/predict" class="nav-locked">Predict <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
+        <a href="/logs" class="nav-locked">My Logs <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
+        <button class="theme-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <a href="/register" class="cta-btn">Sign Up Free</a>
+    </div>
+</nav>
+
+<main>
+    <div class="auth-box">
+        <div class="auth-header">
+            <div class="icon">🌾</div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to CropOracle to continue</p>
+        </div>
+
+        {% if error %}
+            <div class="msg-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+        {% endif %}
+        {% if success %}
+            <div class="msg-success"><i class="fa-solid fa-circle-check"></i> {{ success }}</div>
+        {% endif %}
+
+        <form method="POST" action="/login" autocomplete="off">
+            <div class="form-group">
+                <label>Username or Email</label>
+                <input type="text" name="username" placeholder="Enter username or email" required autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="password-wrap">
+                    <input type="password" name="password" id="password" placeholder="Enter your password" required autocomplete="off">
+                    <i class="fa-solid fa-eye eye-toggle" id="togglePassword"></i>
+                </div>
+            </div>
+
+            <div class="forgot-link">
+                <a href="/forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+        </form>
+
+        <div class="divider">or</div>
+
+        <a href="/login/google?flow=login" class="google-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18" alt="Google">
+            Continue with Google
+        </a>
+
+        <div class="auth-footer-link">
+            Don't have an account? <a href="/register">Create Account</a>
+        </div>
+    </div>
+</main>
+
+<script>
+function toggleTheme() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    document.body.setAttribute('data-theme', isDark ? '' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.setAttribute('data-theme','dark');
+    document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+}
+
+const password = document.getElementById('password');
+const togglePassword = document.getElementById('togglePassword');
+togglePassword.addEventListener('click', () => {
+    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+    password.setAttribute('type', type);
+    togglePassword.classList.toggle('fa-eye');
+    togglePassword.classList.toggle('fa-eye-slash');
+});
+</script>
+</body>
+</html>

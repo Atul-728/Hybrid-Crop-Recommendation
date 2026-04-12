@@ -1,0 +1,7 @@
+[
+  "rf",
+  "xgb",
+  "lgbm",
+  "catboost",
+  "tabnet"
+]

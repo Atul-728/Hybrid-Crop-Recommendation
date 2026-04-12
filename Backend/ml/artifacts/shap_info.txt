@@ -1,0 +1,11 @@
+Model used: model_catboost.pkl
+Output image: D:\Capstone\Hybrid-Crop-Recommendation\Frontend\static\charts\shap_summary.png
+Displayed crops:
+mothbeans
+pigeonpeas
+lentil
+papaya
+pomegranate
+blackgram
+mungbean
+Other crops

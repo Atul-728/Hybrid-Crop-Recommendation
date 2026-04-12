@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result | Smart Agriculture</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+    <link rel="stylesheet" href="/static/style.css?v=7">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body[data-theme="dark"] {
+            background-color: #141414;
+            color: #e5e5e5;
+        }
+
+        body[data-theme="dark"] .hero-card,
+        body[data-theme="dark"] .alt-card {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+            border-top: 3px solid #E50914;
+        }
+
+        body[data-theme="dark"] .profit-highlight {
+            background-color: rgba(229, 9, 20, 0.1);
+            color: #E50914;
+            border: 1px dashed #E50914;
+        }
+
+        body[data-theme="dark"] h2 {
+            border-left: 5px solid #E50914 !important;
+        }
+
+        body[data-theme="dark"] .reason-box {
+            background-color: #222;
+            border-left: 4px solid #E50914;
+        }
+
+        body[data-theme="dark"] .reason-box i.fa-robot {
+            color: #E50914 !important;
+        }
+
+        /* Overrides for generic elements */
+        body[data-theme="dark"] .profit {
+            color: #E50914;
+            font-weight: bold;
+        }
+
+        body[data-theme="dark"] p[style*="1db954"] {
+            color: #E50914 !important;
+        }
+
+        /* Chatbot Styles */
+        #chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #chat-btn {
+            background: #E50914;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        #chat-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #chat-window {
+            display: none;
+            width: 350px;
+            height: 450px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #444;
+            border-radius: 10px;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            flex-direction: column;
+            font-family: sans-serif;
+        }
+
+        #chat-header {
+            background: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            color: #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        #chat-input-container {
+            display: flex;
+            border-top: 1px solid #444;
+            height: 50px;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            margin: 0;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+        }
+
+        #chat-send {
+            background: #E50914;
+            color: white;
+            border: none;
+            padding: 0;
+            margin: 0;
+            width: 60px !important;
+            min-width: 60px;
+            cursor: pointer;
+            border-radius: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 15px 15px 0 15px;
+            max-width: 80%;
+        }
+
+        .msg-bot {
+            align-self: flex-start;
+            background: #E50914;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px 15px 15px 0;
+            max-width: 80%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="top-nav-bar">
+        <a href="/dashboard" class="nav-brand">
+            <i class="fa-solid fa-leaf"></i> Agri AI
+        </a>
+        <div class="nav-links">
+            <a href="/dashboard">Home</a>
+            <a href="/logs">My Logs</a>
+            <a href="/analytics">Analytics</a>
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <script>
+        const themeToggle = document.getElementById("theme-toggle");
+        const icon = themeToggle.querySelector("i");
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.setAttribute("data-theme", "dark");
+            icon.classList.replace("fa-moon", "fa-sun");
+        }
+        themeToggle.addEventListener("click", () => {
+            if (document.body.getAttribute("data-theme") === "dark") {
+                document.body.removeAttribute("data-theme");
+                localStorage.setItem("theme", "light");
+                icon.classList.replace("fa-sun", "fa-moon");
+            } else {
+                document.body.setAttribute("data-theme", "dark");
+                localStorage.setItem("theme", "dark");
+                icon.classList.replace("fa-moon", "fa-sun");
+            }
+        });
+    </script>
+
+    <div class="result-wrapper">
+        <div class="hero-card">
+            <p style="color: #1db954; font-weight: 800; letter-spacing: 2px; margin-bottom: 10px;">OPTIMAL
+                RECOMMENDATION</p>
+            <h1 class="crop-title">{{ result.top1 }}</h1>
+
+            <div style="margin-bottom: 25px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                {% if result.risk_level == "High Risk" %}
+                <span
+                    style="padding: 10px 20px; font-size: 14px; background: rgba(220, 38, 38, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; font-weight: 700;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ result.risk_level }}
+                </span>
+                {% elif result.risk_level == "Moderate Risk" %}
+                <span
+                    style="padding: 10px 20px; font-size: 14px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; border-radius: 8px; font-weight: 700;">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ result.risk_level }}
+                </span>
+                {% else %}
+                <span
+                    style="padding: 10px 20px; font-size: 14px; background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; border-radius: 8px; font-weight: 700;">
+                    <i class="fa-solid fa-circle-check"></i> {{ result.risk_level }} — Safe to Grow
+                </span>
+                {% endif %}
+
+                <span
+                    style="padding: 10px 20px; font-size: 14px; background: rgba(29, 185, 84, 0.12); color: #1db954; border: 1px solid #1db954; border-radius: 8px; font-weight: 700;">
+                    <i class="fa-solid fa-seedling"></i> Growth Suitability: {{ result.growth_suitability }}%
+                </span>
+            </div>
+
+            <div class="reason-box">
+                <i class="fa-solid fa-robot" style="font-size: 20px; color: #1db954; margin-right: 10px;"></i>
+                <strong>AI Insight:</strong> {{ result.reason }}
+            </div>
+
+            <div class="profit-highlight"
+                style="display: flex; flex-direction: column; align-items: center; padding: 15px;">
+                <div style="font-size: 22px; margin-bottom: 5px;">
+                    <i class="fa-solid fa-sack-dollar"></i> Expected Profit: ₹{{ result.expected_profit }} / Quintal
+                </div>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 5px; text-transform: none; letter-spacing: 0;">
+                    Risk Score: <strong>{{ result.risk_score }}</strong>
+                    <br>Calculated as: <em>Profit × (Soil Suitability % ÷ 100) × (1 - 0.25 × Risk Score)</em>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 30px; border-left: 5px solid #1db954; padding-left: 15px;">GenAI Market & Yield
+            Analysis</h2>
+        <div class="grid-container">
+            {% for crop in result.top3 %}
+            <div class="alt-card">
+                <h3 style="text-transform: uppercase; margin-bottom: 20px; font-size: 22px; text-align: center;">
+                    {{ crop.name }} {% if loop.index == 1 %}⭐{% endif %}
+                </h3>
+
+                <div class="stat-row">
+                    <span class="stat-label">Soil Suitability</span>
+                    <span class="stat-val" style="color: #1db954;">{{ crop.confidence }}%</span>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Growth Suitability</span>
+                    <span class="stat-val"
+                        style="color: {% if crop.growth_suitability >= 70 %}#22c55e{% elif crop.growth_suitability >= 40 %}#f59e0b{% else %}#ef4444{% endif %};">{{
+                        crop.growth_suitability }}%</span>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Production Cost</span>
+                    <span class="stat-val">₹{{ crop.dynamic_cost }}</span>
+                </div>
+
+                <div class="stat-row">
+                    <span class="stat-label">Live Market Price</span>
+                    <span class="stat-val">₹{{ crop.dynamic_price }}</span>
+                </div>
+
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #444;">
+                    <div class="stat-row" style="margin-bottom: 0;">
+                        <span class="stat-label" style="color: #fff;">Profit Margin</span>
+                        <span class="stat-val profit">+ ₹{{ crop.estimated_profit }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 50px;">
+            <a href="/dashboard"
+                style="background: #333; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 700;">Predict
+                Another</a>
+            <a href="/logs"
+                style="background: #1db954; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 700;">View
+                History</a>
+        </div>
+    </div>
+
+    <script>
+        // Chatbot UI Integration
+        const chatWidget = `
+<div id="chat-widget">
+    <button id="chat-btn"><i class="fa-solid fa-robot"></i></button>
+    <div id="chat-window">
+        <div id="chat-header">
+            <span><i class="fa-solid fa-headset"></i> Agri AI Support</span>
+            <button id="close-chat"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+        <div id="chat-body">
+            <div class="msg-bot">Hello! How can I help you regarding this recommendation?</div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+            <button id="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+`;
+        document.body.insertAdjacentHTML('beforeend', chatWidget);
+
+        const chatBtn = document.getElementById('chat-btn');
+        const chatWindow = document.getElementById('chat-window');
+        const closeChat = document.getElementById('close-chat');
+        const chatSend = document.getElementById('chat-send');
+        const chatInput = document.getElementById('chat-input');
+        const chatBody = document.getElementById('chat-body');
+
+        chatBtn.addEventListener('click', () => { chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex'; });
+        closeChat.addEventListener('click', () => { chatWindow.style.display = 'none'; });
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            chatInput.value = "";
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg-user';
+            userMsg.textContent = text;
+            chatBody.appendChild(userMsg);
+
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'msg-bot';
+            loadingMsg.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            chatBody.appendChild(loadingMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            try {
+                const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: text }), headers: { 'Content-Type': 'application/json' } });
+                const data = await res.json();
+                loadingMsg.innerHTML = data.reply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+            } catch (e) {
+                loadingMsg.textContent = "Error reaching support. Please try again.";
+            }
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
+
+</body>
+
+</html>

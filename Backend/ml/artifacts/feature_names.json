@@ -1,0 +1,12 @@
+[
+  "N",
+  "P",
+  "K",
+  "temperature",
+  "humidity",
+  "ph",
+  "rainfall",
+  "seasonal_index",
+  "npk_ratio",
+  "humidity_rainfall_interaction"
+]

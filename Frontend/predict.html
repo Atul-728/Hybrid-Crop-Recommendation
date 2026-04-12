@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Crop — CropOracle</title>
+    <meta name="description" content="Enter your soil and climate parameters to get AI-powered crop recommendations with uncertainty quantification.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-mid: #2d6a4f;
+            --sage: #52b788;
+            --lime: #95d5b2;
+            --charcoal: #1c1c1e;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
+
+        .bg {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(82,183,136,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1208 0%, #1c1c1e 100%);
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 0 48px; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(28,28,30,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
+        .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-name span { color: var(--sage); }
+        .nav-links { display: flex; align-items: center; gap: 8px; }
+        .nav-links a { text-decoration: none; color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--white); background: rgba(255,255,255,0.06); }
+        .nav-links a.active { color: var(--sage); }
+        .nav-links .logout-btn { background: rgba(229,9,20,0.12); color: #ff4f5a !important; border: 1px solid rgba(229,9,20,0.2); }
+        .nav-links .logout-btn:hover { background: rgba(229,9,20,0.2) !important; }
+
+        /* PAGE */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            padding: 100px 32px 60px;
+            min-height: 100vh;
+        }
+
+        .predict-container {
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 40px; text-align: center;
+        }
+        .page-header .icon { font-size: 36px; margin-bottom: 16px; display: inline-block; }
+        .page-header h1 {
+            font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+        .page-header p { font-size: 14px; color: rgba(255,255,255,0.5); max-width: 600px; margin: 0 auto; }
+
+        .tip-bar {
+            background: rgba(233,196,106,0.08);
+            border: 1px solid rgba(233,196,106,0.15);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 13px; font-weight: 500;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 28px;
+            display: flex; align-items: flex-start; gap: 12px;
+            line-height: 1.5;
+            backdrop-filter: blur(10px);
+        }
+        .tip-bar i { color: #e9c46a; font-size: 16px; margin-top: 2px; }
+
+        /* FORM CARD */
+        .predict-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+        }
+        .predict-card h3 {
+            font-size: 14px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: var(--sage);
+            margin-bottom: 24px; display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 14px; font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--sage);
+            background: rgba(82,183,136,0.06);
+        }
+        .input-group input::placeholder { color: rgba(255,255,255,0.2); }
+        .input-group select option { background: #1c1c1e; color: #fff; }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--sage);
+            color: var(--charcoal);
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            margin-top: 12px;
+            box-shadow: 0 8px 24px rgba(82,183,136,0.2);
+        }
+        .predict-btn:hover {
+            background: var(--lime);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(82,183,136,0.3);
+        }
+
+        /* AI SUGGESTIONS */
+        .suggestions-area {
+            background: rgba(82,183,136,0.08);
+            border: 1px solid rgba(82,183,136,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+        .suggestions-area .suggest-label {
+            font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px; font-weight: 600;
+        }
+        .suggestions-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+        .suggest-chip {
+            background: rgba(82,183,136,0.15);
+            border: 1px solid rgba(82,183,136,0.3);
+            color: var(--white);
+            padding: 8px 16px; border-radius: 100px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .suggest-chip i { color: var(--sage); }
+        .suggest-chip:hover {
+            background: var(--sage); color: var(--charcoal);
+            border-color: var(--sage);
+            transform: translateY(-2px);
+        }
+        .suggest-chip:hover i { color: var(--charcoal); }
+
+        /* FOOTER */
+        footer { margin-top: 40px; text-align: center; border-top: 1px solid var(--glass-border); padding: 24px 48px; font-size: 13px; color: rgba(255,255,255,0.3); }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 24px; }
+            .predict-card { padding: 24px 20px; }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .location-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .nav-links a:not(.logout-btn) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-name">Crop<em>Oracle</em></div>
+    </a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/predict" class="active">Predict</a>
+        <a href="/logs">My Logs</a>
+        <a href="/analytics">Analytics</a>
+        <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrapper">
+    <div class="predict-container">
+        <div class="page-header">
+            <div class="icon">✨</div>
+            <h1>Predict Your Best Crop</h1>
+            <p>Enter soil and climate parameters. Our hybrid ensemble (XGBoost, CatBoost, RF, LightGBM, NGBoost) will analyze them in real-time.</p>
+        </div>
+
+        <div class="tip-bar">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div>
+                <strong>Pro tip:</strong> Select your Region, State, and City first to have our Gemini AI automatically suggest optimal crop parameters based on real agricultural data for your area.
+            </div>
+        </div>
+
+        <form action="/predict" method="post">
+            <!-- Location -->
+            <div class="predict-card">
+                <h3><i class="fa-solid fa-map-location-dot"></i> Your Location</h3>
+                <div class="location-grid">
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-compass" style="opacity:0.6;"></i> Region</label>
+                        <select name="region" id="region" required>
+                            <option value="" disabled selected>Select Region</option>
+                            <option value="North">North India</option>
+                            <option value="South">South India</option>
+                            <option value="East">East India</option>
+                            <option value="West">West India</option>
+                            <option value="Central">Central India</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-location-dot" style="opacity:0.6;"></i> State</label>
+                        <select name="state" id="state" required>
+                            <option value="">Select State</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-city" style="opacity:0.6;"></i> City</label>
+                        <select name="city" id="city" required>
+                            <option value="">Select City</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions appear here -->
+                <div class="suggestions-area" id="suggestions-area">
+                    <div class="suggest-label">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--sage)"></i>
+                        GenAI Recommendations for this area — click to auto-fill:
+                    </div>
+                    <div class="suggestions-chips" id="suggest-chips"></div>
+                </div>
+            </div>
+
+            <!-- Soil Parameters -->
+            <div class="predict-card">
+                <h3><i class="fa-solid fa-seedling"></i> Soil Nutrients</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Nitrogen (N)</label>
+                        <input type="number" step="any" name="N" min="0" max="500" placeholder="e.g., 50" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phosphorus (P)</label>
+                        <input type="number" step="any" name="P" min="0" max="500" placeholder="e.g., 40" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Potassium (K)</label>
+                        <input type="number" step="any" name="K" min="0" max="500" placeholder="e.g., 30" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Soil pH</label>
+                        <input type="number" step="any" name="ph" min="1" max="14" placeholder="e.g., 6.5" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Climate Parameters -->
+            <div class="predict-card">
+                <h3><i class="fa-solid fa-cloud-sun"></i> Climate Conditions</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Temperature (°C)</label>
+                        <input type="number" step="any" name="temperature" min="-10" max="60" placeholder="e.g., 25.5" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Humidity (%)</label>
+                        <input type="number" step="any" name="humidity" min="0" max="100" placeholder="e.g., 65.0" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Rainfall (mm)</label>
+                        <input type="number" step="any" name="rainfall" min="0" max="4000" placeholder="e.g., 150.0" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="predict-btn">
+                <i class="fa-solid fa-bolt"></i> Generate AI Prediction
+            </button>
+        </form>
+    </div>
+</div>
+
+<footer>
+    <span>© 2025 CropOracle — MIT License | Powered by NGBoost + Gemini AI</span>
+</footer>
+
+<script>
+// Region → State → City cascade
+const regionStates = {
+    North: ["Punjab","Haryana","Uttar Pradesh","Himachal Pradesh","Uttarakhand","Delhi","Jammu and Kashmir"],
+    South: ["Tamil Nadu","Kerala","Karnataka","Andhra Pradesh","Telangana"],
+    East: ["West Bengal","Bihar","Jharkhand","Odisha"],
+    West: ["Maharashtra","Gujarat","Rajasthan","Goa"],
+    Central: ["Madhya Pradesh","Chhattisgarh"]
+};
+const stateCities = {
+    "Punjab":["Ludhiana","Amritsar","Jalandhar","Patiala","Bathinda"],
+    "Haryana":["Karnal","Hisar","Rohtak","Panipat","Ambala"],
+    "Uttar Pradesh":["Kanpur","Lucknow","Agra","Varanasi","Meerut"],
+    "Himachal Pradesh":["Shimla","Mandi","Dharamshala","Solan"],
+    "Uttarakhand":["Dehradun","Haridwar","Roorkee","Haldwani"],
+    "Delhi":["New Delhi","North Delhi","South Delhi"],
+    "Jammu and Kashmir":["Srinagar","Jammu","Anantnag","Baramulla"],
+    "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli"],
+    "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Palakkad"],
+    "Karnataka":["Bengaluru","Mysuru","Hubli","Mangaluru"],
+    "Andhra Pradesh":["Visakhapatnam","Vijayawada","Guntur","Kurnool"],
+    "Telangana":["Hyderabad","Warangal","Nizamabad","Karimnagar"],
+    "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri"],
+    "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur"],
+    "Jharkhand":["Ranchi","Dhanbad","Jamshedpur","Bokaro"],
+    "Odisha":["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
+    "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+    "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot"],
+    "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota","Bikaner"],
+    "Goa":["Panaji","Margao","Mapusa"],
+    "Madhya Pradesh":["Indore","Bhopal","Jabalpur","Gwalior","Ujjain"],
+    "Chhattisgarh":["Raipur","Bhilai","Bilaspur","Durg"]
+};
+
+const regionSel = document.getElementById('region');
+const stateSel = document.getElementById('state');
+const citySel = document.getElementById('city');
+
+regionSel.addEventListener('change', () => {
+    const states = regionStates[regionSel.value] || [];
+    stateSel.innerHTML = '<option value="">Select State</option>';
+    citySel.innerHTML = '<option value="">Select City</option>';
+    states.forEach(s => stateSel.appendChild(Object.assign(document.createElement('option'), {value:s,textContent:s})));
+});
+
+stateSel.addEventListener('change', () => {
+    const cities = stateCities[stateSel.value] || [];
+    citySel.innerHTML = '<option value="">Select City</option>';
+    cities.forEach(c => citySel.appendChild(Object.assign(document.createElement('option'), {value:c,textContent:c})));
+});
+
+citySel.addEventListener('change', async () => {
+    const { value: city } = citySel;
+    const state = stateSel.value, region = regionSel.value;
+    if (!city || !state || !region) return;
+
+    const area = document.getElementById('suggestions-area');
+    const chips = document.getElementById('suggest-chips');
+    area.style.display = 'block';
+    chips.innerHTML = '<span style="color:rgba(255,255,255,0.4);font-size:12px;">⏳ Analyzing regional data with Gemini...</span>';
+
+    try {
+        const res = await fetch(`/api/suggest-crops?region=${region}&state=${state}&city=${city}`);
+        const data = await res.json();
+        chips.innerHTML = '';
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                const chip = document.createElement('div');
+                chip.className = 'suggest-chip';
+                chip.innerHTML = `<i class="fa-solid fa-seedling"></i> ${item.crop}`;
+                chip.addEventListener('click', () => {
+                    ['N','P','K','temperature','humidity','ph','rainfall'].forEach(k => {
+                        const el = document.querySelector(`[name="${k}"]`);
+                        if (el && item[k] !== undefined) el.value = item[k];
+                    });
+                });
+                chips.appendChild(chip);
+            });
+        } else {
+            chips.innerHTML = '<span style="color:rgba(255,255,255,0.35);font-size:12px;">No historical models found for this specific area.</span>';
+        }
+    } catch(e) { chips.innerHTML = ''; }
+});
+</script>
+</body>
+</html>

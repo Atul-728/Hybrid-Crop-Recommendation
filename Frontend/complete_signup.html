@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Sign Up — CropOracle</title>
+    <meta name="description" content="Choose your CropOracle username to complete your Google account setup.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-mid: #2d6a4f;
+            --sage: #52b788;
+            --lime: #95d5b2;
+            --charcoal: #1c1c1e;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
+
+        .bg {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(82,183,136,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1208 0%, #1c1c1e 100%);
+        }
+
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 0 48px; height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(28,28,30,0.7); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
+        .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-name em { color: var(--sage); font-style: normal; }
+
+        main {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 90px 24px 40px;
+        }
+
+        .auth-box {
+            width: 100%; max-width: 420px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px; padding: 40px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.6);
+        }
+
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-header .google-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 100px; padding: 6px 16px; margin-bottom: 20px;
+            font-size: 13px; color: rgba(255,255,255,0.6);
+        }
+        .auth-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .auth-header p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+        /* Progress indicator */
+        .steps-indicator {
+            display: flex; align-items: center; gap: 0;
+            margin-bottom: 28px; justify-content: center;
+        }
+        .step-dot {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800;
+        }
+        .step-dot.done { background: rgba(82,183,136,0.2); border: 2px solid var(--sage); color: var(--sage); }
+        .step-dot.active { background: var(--sage); color: var(--charcoal); }
+        .step-line { flex: 1; height: 2px; background: rgba(255,255,255,0.1); max-width: 40px; }
+        .step-line.done { background: rgba(82,183,136,0.4); }
+
+        .form-group { margin-bottom: 20px; }
+        .username-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .form-group label {
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+        }
+        #username-status { font-size: 12px; font-weight: 700; }
+        .form-group input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: var(--white);
+            font-size: 15px; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.2s;
+        }
+        .form-group input:focus { border-color: var(--sage); background: rgba(82,183,136,0.06); }
+        .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+
+        .username-hint {
+            font-size: 12px; color: rgba(255,255,255,0.3);
+            margin-top: 8px; line-height: 1.5;
+        }
+
+        .msg-error {
+            background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.2);
+            color: #ff6b6b; border-radius: 8px; padding: 10px 14px;
+            font-size: 13px; margin-bottom: 16px;
+        }
+
+        .btn-submit {
+            width: 100%; padding: 14px;
+            background: var(--sage); color: var(--charcoal);
+            font-size: 15px; font-weight: 800; font-family: 'Inter', sans-serif;
+            border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .btn-submit:hover { background: var(--lime); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(82,183,136,0.3); }
+
+        .email-note {
+            text-align: center; margin-top: 20px;
+            font-size: 12px; color: rgba(255,255,255,0.3);
+        }
+        .email-note span { color: rgba(255,255,255,0.5); }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-name">Crop<em>Oracle</em></div>
+    </a>
+</nav>
+
+<main>
+    <div class="auth-box">
+        <div class="auth-header">
+            <div class="google-pill">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="14" alt="Google">
+                Connected via Google
+            </div>
+            <h1>One Last Step</h1>
+            <p>Choose a unique username to complete your CropOracle account.</p>
+        </div>
+
+        <!-- Progress indicator -->
+        <div class="steps-indicator">
+            <div class="step-dot done"><i class="fa-solid fa-check" style="font-size:10px;"></i></div>
+            <div class="step-line done"></div>
+            <div class="step-dot done"><i class="fa-solid fa-check" style="font-size:10px;"></i></div>
+            <div class="step-line done"></div>
+            <div class="step-dot active">3</div>
+        </div>
+
+        {% if error %}
+            <div class="msg-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/complete-google-signup">
+            <input type="hidden" name="email" value="{{ email }}">
+
+            <div class="form-group">
+                <div class="username-row">
+                    <label>Username</label>
+                    <span id="username-status"></span>
+                </div>
+                <input type="text" name="username" id="username"
+                    placeholder="johndoe123" required minlength="5"
+                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$"
+                    title="At least 5 characters with both letters and numbers."
+                    autocomplete="off">
+                <p class="username-hint">
+                    <i class="fa-solid fa-info-circle"></i>
+                    Min 5 characters · Letters &amp; numbers only · No spaces
+                </p>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-check-circle"></i> Complete Account Setup
+            </button>
+        </form>
+
+        <div class="email-note">
+            Setting up account for <span>{{ email }}</span>
+        </div>
+    </div>
+</main>
+
+<script>
+const usernameInput = document.getElementById('username');
+const usernameStatus = document.getElementById('username-status');
+let typingTimer;
+
+usernameInput.addEventListener('focus', () => {
+    usernameInput.style.borderColor = '#52b788';
+    usernameInput.style.background = 'rgba(82,183,136,0.06)';
+});
+usernameInput.addEventListener('blur', () => {
+    usernameInput.style.borderColor = 'rgba(255,255,255,0.08)';
+    usernameInput.style.background = 'rgba(255,255,255,0.06)';
+});
+
+usernameInput.addEventListener('input', function() {
+    clearTimeout(typingTimer);
+    const val = this.value.trim();
+    if (val.length === 0) { usernameStatus.textContent = ''; return; }
+    usernameStatus.style.color = 'rgba(255,255,255,0.4)';
+    usernameStatus.textContent = 'Checking...';
+    typingTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/check-username?username=${encodeURIComponent(val)}`);
+            const data = await res.json();
+            if (data.available) {
+                usernameStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Available';
+                usernameStatus.style.color = '#52b788';
+            } else {
+                usernameStatus.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Taken');
+                usernameStatus.style.color = '#ff6b6b';
+            }
+        } catch(e) { usernameStatus.textContent = ''; }
+    }, 500);
+});
+</script>
+</body>
+</html>

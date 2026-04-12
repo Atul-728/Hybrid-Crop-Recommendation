@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropOracle — Predict. Plant. Prosper.</title>
+    <meta name="description" content="CropOracle is the world's first uncertainty-aware AI crop intelligence system. Get data-driven crop recommendations tailored to your soil, climate, and region.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest: #1a4731;
+            --forest-mid: #2d6a4f;
+            --sage: #52b788;
+            --lime: #95d5b2;
+            --cream: #f8f4e8;
+            --gold: #e9c46a;
+            --earth: #6b4c2a;
+            --charcoal: #1c1c1e;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.08);
+            --glass-border: rgba(255,255,255,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--charcoal);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 0 48px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(28,28,30,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+        nav.scrolled { background: rgba(28,28,30,0.97); }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--white);
+        }
+        .nav-brand .brand-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--forest-mid), var(--sage));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .nav-brand .brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .nav-brand .brand-name span { color: var(--sage); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover { color: var(--white); background: var(--glass); }
+        .nav-links a.active { color: var(--sage); }
+        .nav-links .cta-btn {
+            background: var(--sage);
+            color: var(--charcoal) !important;
+            font-weight: 700;
+            padding: 9px 22px;
+            border-radius: 8px;
+        }
+        .nav-links .cta-btn:hover {
+            background: var(--lime) !important;
+            transform: translateY(-1px);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 120px 48px 80px;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 60% at 60% 40%, rgba(45,106,79,0.25) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 50% at 10% 80%, rgba(82,183,136,0.12) 0%, transparent 60%),
+                linear-gradient(180deg, #0d1f15 0%, #1c1c1e 100%);
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(82,183,136,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(82,183,136,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 660px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(82,183,136,0.12);
+            border: 1px solid rgba(82,183,136,0.25);
+            color: var(--sage);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+        }
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--sage);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(44px, 6vw, 80px);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+        .hero h1 .highlight {
+            color: var(--sage);
+            position: relative;
+        }
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 4px; left: 0; right: 0;
+            height: 3px;
+            background: var(--sage);
+            opacity: 0.3;
+            border-radius: 2px;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.7;
+            margin-bottom: 40px;
+            max-width: 520px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--sage);
+            color: var(--charcoal);
+            font-weight: 700;
+            font-size: 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: var(--lime);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(82,183,136,0.3);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            font-weight: 600;
+            font-size: 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.3s;
+        }
+        .btn-ghost:hover {
+            border-color: var(--sage);
+            color: var(--sage);
+            background: rgba(82,183,136,0.08);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .stat-item .stat-num {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+        }
+        .stat-item .stat-num span { color: var(--sage); }
+        .stat-item .stat-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.45);
+            margin-top: 2px;
+        }
+
+        .hero-visual {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 520px;
+            height: 520px;
+            opacity: 0.9;
+        }
+
+        .orbit-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(82,183,136,0.15);
+            animation: orbit-rotate 20s linear infinite;
+        }
+        .orbit-ring:nth-child(1) { inset: 0; }
+        .orbit-ring:nth-child(2) { inset: 60px; animation-duration: 15s; animation-direction: reverse; }
+        .orbit-ring:nth-child(3) { inset: 120px; animation-duration: 25s; }
+
+        @keyframes orbit-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .orbit-center {
+            position: absolute;
+            inset: 180px;
+            background: radial-gradient(circle, rgba(45,106,79,0.6) 0%, rgba(26,71,49,0.4) 60%, transparent 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 10px; height: 10px;
+            background: var(--sage);
+            border-radius: 50%;
+            top: 0; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 12px var(--sage);
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        section { padding: 100px 48px; }
+
+        .section-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--sage);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(30px, 4vw, 50px);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 56px;
+            max-width: 600px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--sage), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(82,183,136,0.2);
+            transform: translateY(-4px);
+        }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 52px; height: 52px;
+            background: rgba(82,183,136,0.12);
+            border: 1px solid rgba(82,183,136,0.2);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.65;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-section {
+            background: rgba(45,106,79,0.06);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            position: relative;
+        }
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 32px; left: 13%; right: 13%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(82,183,136,0.3), rgba(82,183,136,0.3), transparent);
+        }
+
+        .step-item { text-align: center; }
+        .step-num {
+            width: 64px; height: 64px;
+            background: rgba(45,106,79,0.25);
+            border: 2px solid rgba(82,183,136,0.3);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--sage);
+            margin: 0 auto 20px;
+        }
+        .step-item h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .step-item p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            text-align: center;
+            padding: 120px 48px;
+            background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(45,106,79,0.2) 0%, transparent 70%);
+        }
+        .cta-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 5vw, 60px);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+        }
+        .cta-section p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: rgba(0,0,0,0.4);
+            border-top: 1px solid var(--glass-border);
+            padding: 60px 48px 32px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 48px;
+        }
+        .footer-brand .brand-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.7;
+            margin-top: 12px;
+            max-width: 280px;
+        }
+        .footer-col h5 {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 16px;
+        }
+        .footer-col a {
+            display: block;
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: color 0.2s;
+        }
+        .footer-col a:hover { color: var(--sage); }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 13px;
+            color: rgba(255,255,255,0.3);
+        }
+        .footer-bottom a { color: var(--sage); text-decoration: none; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            nav { padding: 0 24px; }
+            .hero { padding: 100px 24px 60px; }
+            .hero-visual { display: none; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps { grid-template-columns: repeat(2, 1fr); }
+            .steps::before { display: none; }
+            section { padding: 72px 24px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 640px) {
+            .features-grid, .steps, .footer-grid { grid-template-columns: 1fr; }
+            .hero-stats { gap: 24px; }
+            .nav-links a:not(.cta-btn) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav id="navbar">
+    <a href="/" class="nav-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-name">Crop<span>Oracle</span></div>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="active">Home</a>
+        <a href="/about">About</a>
+        {% if is_logged_in %}
+            <a href="/dashboard">Dashboard</a>
+            <a href="/predict">Predict</a>
+            <a href="/logs">My Logs</a>
+            <a href="/analytics">Analytics</a>
+            <a href="/logout" class="cta-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+            <a href="/register" class="cta-btn">Get Started Free</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-content">
+        <div class="hero-badge">
+            <div class="dot"></div>
+            World's first uncertainty-aware crop AI
+        </div>
+
+        <h1>
+            Grow Smarter.<br>
+            Not <span class="highlight">Harder.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+            CropOracle uses hybrid ML models with uncertainty quantification to tell you 
+            not just <em>what</em> to grow — but <em>how confident</em> the recommendation is, 
+            and <em>why</em> it matters for your land, climate, and profit.
+        </p>
+
+        <div class="hero-actions">
+            {% if is_logged_in %}
+                <a href="/predict" class="btn-primary">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Start Predicting
+                </a>
+                <a href="/dashboard" class="btn-ghost">
+                    <i class="fa-solid fa-gauge"></i> Dashboard
+                </a>
+            {% else %}
+                <a href="/register" class="btn-primary">
+                    <i class="fa-solid fa-seedling"></i>
+                    Start Free — No Credit Card
+                </a>
+                <a href="/about" class="btn-ghost">
+                    <i class="fa-solid fa-circle-play"></i> How it Works
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-num">22<span>+</span></div>
+                <div class="stat-label">Crops modeled</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">5<span> Models</span></div>
+                <div class="stat-label">Hybrid ensemble</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">95<span>%+</span></div>
+                <div class="stat-label">Prediction accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+        <div class="orbit-ring"><div class="orbit-dot"></div></div>
+        <div class="orbit-ring">
+            <div class="orbit-dot" style="background:#e9c46a;box-shadow:0 0 12px #e9c46a;"></div>
+        </div>
+        <div class="orbit-ring">
+            <div class="orbit-dot" style="background:#95d5b2;box-shadow:0 0 12px #95d5b2;top:auto;bottom:0;"></div>
+        </div>
+        <div class="orbit-center">🌾</div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+    <span class="section-label">What we do for you</span>
+    <h2 class="section-title">Intelligence built for Indian agriculture</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3>Uncertainty-Aware AI</h3>
+            <p>Unlike basic models, CropOracle uses NGBoost to quantify prediction uncertainty — so you know exactly how reliable each recommendation is.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏞️</div>
+            <h3>Region-Aware Intelligence</h3>
+            <p>Trained on data across North, South, East, West & Central India. Recommendations adapt to your state, city, and microclimate conditions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Profit-First Ranking</h3>
+            <p>We rank crops not just by soil fit — but by expected profit margin, market price, and production cost. Turn data into rupees.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>GenAI Auto-Suggest</h3>
+            <p>Select your city and our Gemini-powered engine auto-fills optimal soil parameters based on real agricultural data for that region.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>SHAP Explainability</h3>
+            <p>Every prediction comes with SHAP-based feature importance — see exactly which soil or climate factor drove the recommendation.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3>Prediction History & Analytics</h3>
+            <p>Every analysis is logged. Review your prediction history, spot patterns across seasons, and export CSV/PDF reports anytime.</p>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+    <span class="section-label">Simple process</span>
+    <h2 class="section-title">From soil data to harvest decision in 4 steps</h2>
+
+    <div class="steps">
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <h4>Enter Soil & Climate</h4>
+            <p>Input N, P, K ratios, soil pH, temperature, humidity, and rainfall data — or let GenAI auto-fill based on your city.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <h4>Select Your Region</h4>
+            <p>Choose your region, state, and city. CropOracle applies location-specific agricultural intelligence to your data.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <h4>AI Runs 5 Models</h4>
+            <p>Our hybrid ensemble (XGBoost + CatBoost + LightGBM + RF + NGBoost) analyzes your inputs in parallel for maximum accuracy.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-num">4</div>
+            <h4>Get Ranked Insights</h4>
+            <p>Receive top crop picks ranked by confidence, profit potential, risk score, and SHAP-backed explanations.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <h2>Your field has a<br>right answer. Find it.</h2>
+    <p>
+        Join farmers across India using CropOracle's AI to make smarter, 
+        data-backed planting decisions every season.
+    </p>
+    {% if is_logged_in %}
+        <a href="/predict" class="btn-primary" style="font-size:16px;padding:16px 36px;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Start Predicting Now
+        </a>
+    {% else %}
+        <a href="/register" class="btn-primary" style="font-size:16px;padding:16px 36px;">
+            <i class="fa-solid fa-seedling"></i> Create Free Account
+        </a>
+    {% endif %}
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="/" class="nav-brand" style="margin-bottom:0;">
+                <div class="brand-icon">🌾</div>
+                <div class="brand-name">Crop<span>Oracle</span></div>
+            </a>
+            <p class="brand-desc">
+                Uncertainty-aware hybrid AI for Indian crop recommendation. 
+                Built with NGBoost, XGBoost, CatBoost, LightGBM, and Random Forest.
+            </p>
+        </div>
+        <div class="footer-col">
+            <h5>Navigate</h5>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/login">Login</a>
+            <a href="/register">Sign Up</a>
+        </div>
+        <div class="footer-col">
+            <h5>Features</h5>
+            <a href="/predict">Crop Prediction</a>
+            <a href="/logs">Prediction Logs</a>
+            <a href="/analytics">Analytics</a>
+        </div>
+        <div class="footer-col">
+            <h5>Info</h5>
+            <a href="mailto:atulkumar805185@gmail.com">Contact Us</a>
+            <a href="/about#mission">Our Mission</a>
+            <a href="https://github.com/Atul-728/Hybrid-Crop-Recommendation" target="_blank">GitHub</a>
+            <a href="/about#license">MIT License</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2025 CropOracle. All rights reserved. Licensed under <a href="/about#license">MIT</a>.</span>
+        <span>Made with 🌱 for Indian Agriculture</span>
+    </div>
+</footer>
+
+<script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 40);
+    });
+</script>
+</body>
+</html>
