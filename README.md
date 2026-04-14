@@ -135,17 +135,17 @@ Use this to launch the graphical dashboards that measure CPU and Memory loads.
        *   **Zero-Config Dashboard:** You don't need to setup anything! The "🌱 CropOracle - Multi-Node Monitoring" dashboard is pre-loaded as your home page.
    *   **Prometheus (The Data Collector):** Visit `http://localhost:9090`. 
 
-3. **👨‍🏫 Presentation Queries (Live Demo):**
-   If your examiner asks you to show the data manually in Prometheus or create a new panel in Grafana, use these "PromQL" queries:
+3. **📊 Manual Metric Queries (PromQL):**
+   The following queries can be used in the Prometheus or Grafana metrics browser for deep-dive technical analysis:
    
-   | Metric | Query | What it shows |
+   | Metric | Query | Description |
    | :--- | :--- | :--- |
-   | **CPU Load** | `rate(process_cpu_seconds_total[1m]) * 100` | Current CPU usage in % |
-   | **Memory** | `process_resident_memory_bytes / 1024 / 1024` | RAM usage in MB |
-   | **Traffic** | `sum(rate(http_requests_total[1m]))` | Request per second |
-   | **Errors** | `sum(rate(http_requests_total{status=~"5.."}[1m]))` | Server Error rate |
+   | **CPU Load** | `rate(process_cpu_seconds_total[1m]) * 100` | Real-time CPU utilization % |
+   | **Memory** | `process_resident_memory_bytes / 1024 / 1024` | Resident memory set in MB |
+   | **Traffic** | `sum(rate(http_requests_total[1m]))` | Global requests per second |
+   | **Errors** | `sum(rate(http_requests_total{status=~"5.."}[1m]))` | Internal Server Error tracking |
 
-4. **Presentation Tip:**
-   To make the graphs move during your demo, simply go to your running website (e.g., `localhost:8080`) and refresh the "Predict" page several times. This generates "Load" on the server, which Prometheus will capture and Grafana will display as immediate spikes in the CPU and Memory graphs. 
+4. **🔭 Observability Insights:**
+   This monitoring stack provides real-time visibility into the infrastructure. To observe system behavior under load, perform several crop predictions on the live website. Prometheus will capture the resulting CPU spike, which Grafana will visualize instantly. 
    
-   **Pro Tip:** If the CPU spike crosses 75%, point to the Grafana dashboard and then immediately run `kubectl get pods` to show the **Auto-Scaling** in action!
+   **Architecture Note:** When CPU utilization exceeds the configured threshold (e.g., 75%), the Kubernetes Horizontal Pod Autoscaler (HPA) will dynamically spin up additional replicas (up to 5) to maintain platform stability. This can be verified via `kubectl get pods`.
