@@ -101,11 +101,18 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
    *(Now go to `http://localhost:8080` in your browser)*
 
 7. **How to Demonstrate Scaling (The Kubernetes Magic):**
-   If you want to show how Kubernetes handles high traffic, run this command in a separate terminal:
+
+   **Option A: Manual Scaling**
+   If you want to show how Kubernetes handles high traffic manually, run this command:
    ```bash
-   kubectl scale deployment croporacle-app --replicas=3
+   kubectl scale deployment croporacle-app --replicas=5
    ```
-   Run `kubectl get pods` again, and you will instantly see 3 identical servers running the application simultaneously to handle the load.
+   
+   **Option B: Automatic Auto-Scaling (HPA)**
+   We have already configured a **Horizontal Pod Autoscaler (HPA)**. To see it in action:
+   1. Open a terminal and run: `kubectl get hpa -w`
+   2. Open the website in 3-4 different browser tabs and continuously refresh the "Predict" page.
+   3. Within 1-2 minutes, the CPU usage will hit the 30% threshold, and you will see the "REPLICAS" column automatically jump from 1 to 5!
 
 ---
 
