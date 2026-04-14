@@ -27,6 +27,6 @@ shap
 imbalanced-learn
 google-generativeai
 authlib
-httpx
+httpx==0.27.2
 itsdangerous
 prometheus-fastapi-instrumentator
