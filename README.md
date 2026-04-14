@@ -4,9 +4,9 @@ Welcome to **CropOracle**, a fully complete, AI-powered agricultural platform de
 
 ---
 
-## 📖 What is CropOracle? (For Everyone)
+## 📖 What is CropOracle?
 
-If you are not from a technical background, think of CropOracle as a digital agricultural expert. 
+CropOracle acts as an advanced digital agricultural expert. 
 
 Farmers or agricultural businesses can input their soil metrics (Nitrogen, Phosphorous, Potassium, pH levels) and regional climate details. CropOracle takes this information and processes it through a highly advanced Machine Learning brain (a "Stacked Hybrid Ensemble" combining 5 different prediction models) to confidently recommend the absolute best crop to grow. 
 
@@ -21,9 +21,9 @@ But it doesn't stop there. Once a crop is chosen, CropOracle immediately connect
 
 You can run CropOracle in two different ways depending on your goal. You can run it locally for simple testing, or you can run it using full "DevOps" tools just like mega-corporations (Google, Netflix, Amazon) do.
 
-### Q: "If I can run it simply, why do we need DevOps tools like Docker and Kubernetes?"
+### 🏗️ Why Use DevOps Tools?
 
-That's a great question! Running the project locally (just typing `uvicorn` in the terminal) is perfect for a single student on a laptop. But if you were releasing CropOracle to the actual world:
+While running the project locally using simple terminal commands is perfect for development and testing, deploying CropOracle to the real world requires enterprise infrastructure:
 *   **Docker:** If you send your code to a friend, it might crash because they don't have the right Python version. Docker creates an unbreakable "shipping container" that packages your code, Python, and the database together so it runs flawlessly on *any* computer, guaranteed.
 *   **Kubernetes:** If 100,000 Indian farmers log into CropOracle at the same time, the server will melt. Kubernetes acts as a manager. If traffic is high, Kubernetes will automatically clone your app into 10 copies to handle the load. If one copy crashes, Kubernetes kills it and spawns a new one instantly ("self-healing").
 *   **Prometheus & Grafana:** When thousands of people use the site, how do you know if the server is struggling? Prometheus constantly measures your server's "vitals" (CPU, Memory, Traffic), and Grafana turns those numbers into beautiful, colorful graphs. This allows administrators to fix problems *before* the website crashes.
