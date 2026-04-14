@@ -2,7 +2,7 @@
 
 CropOracle is a full-stack, machine-learning-powered agricultural platform that predicts the most suitable crop to cultivate based on soil health and climate conditions. 
 
-Unlike traditional platforms that use a single model, CropOracle relies on a **Stacked Hybrid Ensemble** (XGBoost, CatBoost, LightGBM, Random Forest, NGBoost) to deliver **Uncertainty-Aware** predictions and **GenAI-powered** location autofill.
+Unlike traditional platforms that use a single model, CropOracle relies on a **Stacked Hybrid Ensemble** (XGBoost, CatBoost, LightGBM, Random Forest, NGBoost) to deliver **Uncertainty-Aware** predictions and **AgentRouter-powered (DeepSeek-v3.1)** location autofill, market economics, and chatbot support.
 
 ---
 
@@ -12,6 +12,7 @@ This project is fully containerized and instrumented with a modern DevOps stack 
 
 ### Tech Stack
 - **Backend**: Python 3, FastAPI, SQLAlchemy, Google OAuth Authlib
+- **AI Integration**: Agent Router (DeepSeek-v3.1) with fallback to Groq & Gemini
 - **Frontend**: Vanilla HTML/CSS/JS (Dark Glassmorphism Design System)
 - **Database**: PostgreSQL (Docker) / SQLite (Fallback)
 - **Monitoring**: Prometheus & Grafana
