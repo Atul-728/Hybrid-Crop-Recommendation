@@ -6,7 +6,7 @@ scrape_configs:
   # CropOracle FastAPI app (running on host at port 8081)
   - job_name: 'croporacle-app'
     static_configs:
-      - targets: ['host.docker.internal:8081']
+      - targets: ['host.docker.internal:8081', 'host.docker.internal:8090']
     metrics_path: '/metrics'
 
   # Prometheus itself
