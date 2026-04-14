@@ -110,12 +110,22 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
 ---
 
 ### Method D: The Monitoring System (Prometheus & Grafana)
-Use this to launch the graphical dashboards that measure CPU and Memory loads.
+Use this to launch the graphical dashboards that measure CPU and Memory loads. 
+
+**Note:** The monitoring stack is independent and can be used to watch the application whether it is running via Docker Compose or Kubernetes.
 
 1. **Start the Dashboards:**
    ```bash
    cd monitoring
    docker-compose -f docker-compose.monitoring.yml up -d
    ```
-2. **View the Graphs:** Open your browser and go to `http://localhost:3000`
-3. **Login Details:** Username: `admin`, Password: `admin`
+
+2. **Access the Monitoring Tools:**
+   *   **Prometheus (The Data Collector):** Visit `http://localhost:9090`. 
+       *   *Use this to see the raw metrics and verify that data is being "scraped" from the application.*
+   *   **Grafana (The Visualizer):** Visit `http://localhost:3000`.
+       *   *Login Details: Username: `admin` | Password: `admin`*
+       *   *Use this to see the beautiful, colorful graphs of CPU and Memory usage.*
+
+3. **Presentation Tip:**
+   To make the graphs move during your demo, simply go to your running website (e.g., `localhost:8080`) and refresh the "Predict" page several times. This generates "Load" on the server, which Prometheus will capture and Grafana will display as immediate spikes in the CPU and Memory graphs.
