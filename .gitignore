@@ -44,3 +44,6 @@ crop_system.db
 
 # Agent directories
 .agent/
+
+# Kubernetes Secrets
+k8s/configmap.yaml

@@ -59,34 +59,53 @@ Use this if you want to run the full Database and Application inside isolated Do
 ### Method C: The Enterprise Level (Kubernetes)
 Use this to simulate a massive cloud-scale deployment using Minikube. Run these commands strictly in this order:
 
+**⚠️ IMPORTANT PORT RULE:** You can only run ONE method at a time. Before starting Kubernetes, ensure that Method A (uvicorn) and Method B (docker-compose) are completely stopped to prevent port conflicts on `8080` and `8081`.
+
 1. **Start the Mini-Cloud Cluster:**
    ```bash
    minikube start --driver=docker
    ```
+
+2. **Build the Image Inside the Cluster (Critical Step):**
+   Kubernetes needs the Docker image available locally. Point your terminal to Minikube's Docker Engine and build the image directly inside it:
+   ```bash
+   minikube docker-env | Invoke-Expression  # For Windows PowerShell
+   # OR: eval $(minikube docker-env)        # For Mac/Linux
+
+   docker build -t croporacle:latest .
+   ```
    
-2. **Push the Storage & Database configs:**
+3. **Push the Storage & Database configs:**
    ```bash
    kubectl apply -f k8s/postgres-pvc.yaml
    kubectl apply -f k8s/postgres-deployment.yaml
    ```
 
-3. **Push the Application Configuration:**
+4. **Push the Application Configuration:**
+   *(Note: The `k8s/configmap.yaml` file contains sensitive API keys needed for Kubernetes to run. For security, it is intentionally excluded from the public GitHub repository).*
    ```bash
    kubectl apply -f k8s/configmap.yaml
    kubectl apply -f k8s/deployment.yaml
    ```
 
-4. **Verify it is Running:**
+5. **Verify it is Running:**
    *(Wait 1 minute, then check if the "Pods" are active)*
    ```bash
    kubectl get pods
    ```
 
-5. **Expose It To Your Browser:**
+6. **Expose It To Your Browser:**
    ```bash
    kubectl port-forward svc/croporacle-service 8080:8080
    ```
    *(Now go to `http://localhost:8080` in your browser)*
+
+7. **How to Demonstrate Scaling (The Kubernetes Magic):**
+   If you want to show how Kubernetes handles high traffic, run this command in a separate terminal:
+   ```bash
+   kubectl scale deployment croporacle-app --replicas=3
+   ```
+   Run `kubectl get pods` again, and you will instantly see 3 identical servers running the application simultaneously to handle the load.
 
 ---
 
