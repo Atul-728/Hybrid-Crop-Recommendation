@@ -61,9 +61,10 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
 
 **⚠️ IMPORTANT PORT RULE:** You can only run ONE method at a time. Before starting Kubernetes, ensure that Method A (uvicorn) and Method B (docker-compose) are completely stopped to prevent port conflicts on `8080` and `8081`.
 
-1. **Start the Mini-Cloud Cluster:**
+1. **Start the Mini-Cloud Cluster & Enable Monitor:**
    ```bash
    minikube start --driver=docker
+   minikube addons enable metrics-server  # Required for Auto-scaling
    ```
 
 2. **Build the Image Inside the Cluster (Critical Step):**
@@ -86,6 +87,7 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
    ```bash
    kubectl apply -f k8s/configmap.yaml
    kubectl apply -f k8s/deployment.yaml
+   kubectl apply -f k8s/hpa.yaml         # Starts the Auto-scaler
    ```
 
 5. **Verify it is Running:**
@@ -110,9 +112,9 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
    
    **Option B: Automatic Auto-Scaling (HPA)**
    We have already configured a **Horizontal Pod Autoscaler (HPA)**. To see it in action:
-   1. Open a terminal and run: `kubectl get hpa -w`
-   2. Open the website in 3-4 different browser tabs and continuously refresh the "Predict" page.
-   3. Within 1-2 minutes, the CPU usage will hit the 30% threshold, and you will see the "REPLICAS" column automatically jump from 1 to 5!
+    1. Open a terminal and run: `kubectl get hpa -w`
+    2. Open the website and refresh the "Predict" page frequently to generate load.
+    3. Within 1-2 minutes, if the CPU usage hits the **75% threshold**, you will see the "REPLICAS" column automatically jump from 1 to 5!
 
 ---
 
