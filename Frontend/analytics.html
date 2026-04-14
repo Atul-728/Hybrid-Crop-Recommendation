@@ -1,88 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Model Analytics</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
-    <link rel="stylesheet" href="/static/style.css">
+    <title>ML Analytics — CropOracle</title>
+    <meta name="description" content="Machine learning model analytics and performance charts for CropOracle's hybrid ensemble.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .analytics-wrapper { max-width: 1200px; margin: 40px auto; padding: 20px; font-family: sans-serif; }
-        .header-title { text-align: center; margin-bottom: 40px; color: #1976d2; font-size: 36px; }
-        
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
-        .chart-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); text-align: center; }
+        :root {
+            --forest-mid: #2d6a4f; --sage: #52b788; --lime: #95d5b2;
+            --bg: #1c1c1e; --surface: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.09);
+            --text-primary: #ffffff; --text-secondary: rgba(255,255,255,0.55);
+            --text-muted: rgba(255,255,255,0.35); --nav-bg: rgba(28,28,30,0.88);
+            --surface-hover: rgba(255,255,255,0.07);
+            --card-bg: rgba(255,255,255,0.04); --card-text: rgba(255,255,255,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f0f4f0; --surface: rgba(255,255,255,0.85); --border: rgba(0,0,0,0.10);
+            --text-primary: #0f1f17; --text-secondary: #3d5a48; --text-muted: #6b8c77;
+            --nav-bg: rgba(240,244,240,0.92); --surface-hover: rgba(255,255,255,0.95);
+            --card-bg: #ffffff; --card-text: #555;
+        }
+        /* ── Light mode nav pill (active tab highlight) ── */
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a:hover { color: #0d1f0f !important; background: rgba(45,106,79,0.09) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 48px; height: 70px; display: flex; align-items: center; justify-content: space-between; background: var(--nav-bg); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); }
+        .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-name span { color: var(--sage); }
+        .nav-links { display: flex; align-items: center; gap: 6px; }
+        .nav-links a { text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; padding: 7px 13px; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a:hover { color: var(--text-primary); background: var(--surface); }
+        .nav-links a.active { color: var(--sage); font-weight: 600; }
+        .nav-links .logout-btn { background: rgba(229,9,20,0.1); color: #ff4f5a !important; border: 1px solid rgba(229,9,20,0.2); }
+        .nav-links .logout-btn:hover { background: rgba(229,9,20,0.2) !important; }
+        .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; color: var(--text-secondary); cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .theme-toggle:hover { background: var(--surface-hover); color: var(--sage); }
+
+        .page-wrapper { position: relative; z-index: 1; padding: 100px 32px 60px; max-width: 1100px; margin: 0 auto; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; color: var(--text-primary); }
+        .page-header p { font-size: 14px; color: var(--text-secondary); }
+
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        .chart-card { background: var(--card-bg); border: 1px solid var(--border); padding: 28px; border-radius: 16px; text-align: center; transition: all 0.3s; }
+        .chart-card:hover { border-color: rgba(82,183,136,0.2); }
         .chart-card.full-width { grid-column: span 2; }
-        .chart-card h3 { color: #444; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .chart-card img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px; }
-        
-        .btn-back { display: inline-block; padding: 12px 25px; background: #555; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
-        .btn-back:hover { background: #333; }
+        .chart-card h3 { color: var(--text-primary); margin-bottom: 8px; font-size: 18px; font-weight: 700; }
+        .chart-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+        .chart-card img { max-width: 100%; height: auto; border-radius: 10px; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .back-link:hover { border-color: rgba(82,183,136,0.3); color: var(--sage); }
+
+        footer { background: var(--surface); border-top: 1px solid var(--border); padding: 28px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--text-muted); }
+        footer a { color: var(--sage); text-decoration: none; }
+
+
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .chart-grid { grid-template-columns: 1fr; }
+            .chart-card.full-width { grid-column: span 1; }
+            .nav-links a:not(.logout-btn) { display: none; }
+        }
     </style>
 </head>
-<body style="background-color: #f4f7f6;">
-<div class="top-nav-bar">
-    <div class="user-greeting">
-        <i class="fa-solid fa-hand-wave"></i> Hi, {{ username | capitalize }}!
+<body>
+
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="brand-icon">🌾</div>
+        <div class="brand-name">Crop<span>Oracle</span></div>
+    </a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/predict">Predict</a>
+        <a href="/analytics" class="active">Analytics</a>
+        <a href="/logs">My Logs</a>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+        <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
-    <button class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">
-        <i class="fa-solid fa-moon"></i>
-    </button>
-</div>
+</nav>
 
-<script>
-    const themeToggle = document.getElementById("theme-toggle");
-    const body = document.documentElement;
-    const icon = themeToggle.querySelector("i");
-
-    // Check LocalStorage on page load
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.setAttribute("data-theme", "dark");
-        icon.classList.replace("fa-moon", "fa-sun");
-    }
-
-    // Toggle button logic
-    themeToggle.addEventListener("click", () => {
-        if (document.body.getAttribute("data-theme") === "dark") {
-            document.body.removeAttribute("data-theme");
-            localStorage.setItem("theme", "light");
-            icon.classList.replace("fa-sun", "fa-moon");
-        } else {
-            document.body.setAttribute("data-theme", "dark");
-            localStorage.setItem("theme", "dark");
-            icon.classList.replace("fa-moon", "fa-sun");
-        }
-    });
-</script>
-<div class="analytics-wrapper">
-    <h1 class="header-title"><i class="fa-solid fa-brain"></i> Machine Learning Analytics</h1>
+<div class="page-wrapper">
+    <div class="page-header">
+        <h1><i class="fa-solid fa-chart-line" style="color:var(--sage);margin-right:8px;"></i> ML Model Analytics</h1>
+        <p>Performance metrics and visualizations from our 5-model hybrid ensemble.</p>
+    </div>
 
     <div class="chart-grid">
         <div class="chart-card">
             <h3>Feature Correlation Heatmap</h3>
-            <p style="font-size: 14px; color: #666;">Shows relationships between soil nutrients and climate factors.</p>
-            <img src="/static/charts/correlation_heatmap.png" alt="Heatmap">
+            <p>Relationships between soil nutrients and climate factors.</p>
+            <img src="/static/charts/correlation_heatmap.png" alt="Correlation Heatmap" onerror="this.style.display='none'; this.parentElement.innerHTML += '<p style=\'color:var(--text-muted);padding:40px;\'>Chart image not found. Generate from Jupyter Notebook.</p>';">
         </div>
 
         <div class="chart-card">
             <h3>Algorithm Performance Comparison</h3>
-            <p style="font-size: 14px; color: #666;">Accuracy comparison of different ensemble models evaluated.</p>
-            <img src="/static/charts/model_comparison.png" alt="Model Comparison">
+            <p>Accuracy comparison of different ensemble models.</p>
+            <img src="/static/charts/model_comparison.png" alt="Model Comparison" onerror="this.style.display='none'; this.parentElement.innerHTML += '<p style=\'color:var(--text-muted);padding:40px;\'>Chart image not found. Generate from Jupyter Notebook.</p>';">
         </div>
 
         <div class="chart-card full-width">
-            <h3>Model Confusion Matrix (22 Classes)</h3>
-            <p style="font-size: 14px; color: #666;">Detailed classification accuracy across all crops.</p>
-            <img src="/static/charts/ensemble_confusion_matrix.png" alt="Confusion Matrix" onerror="this.onerror=null; this.src=''; this.alt='Please copy confusion_matrix.png from your Jupyter Notebook to the static folder to view it here.'; this.style.color='red'; this.style.padding='50px';">
+            <h3>Ensemble Confusion Matrix (22 Classes)</h3>
+            <p>Detailed classification accuracy across all crops.</p>
+            <img src="/static/charts/ensemble_confusion_matrix.png" alt="Confusion Matrix" onerror="this.style.display='none'; this.parentElement.innerHTML += '<p style=\'color:var(--text-muted);padding:40px;\'>Confusion matrix image not found. Generate from Jupyter Notebook.</p>';">
         </div>
     </div>
 
-    <div style="text-align: center;">
-        <a href="/dashboard" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+    <div style="text-align:center;">
+        <a href="/dashboard" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
     </div>
 </div>
 
+<footer>
+    <span>© 2025 <a href="/">CropOracle</a> — MIT License</span>
+    <div style="display:flex;gap:20px;">
+        <a href="/about">About</a>
+        <a href="mailto:atulkumar805185@gmail.com">Contact</a>
+        <a href="https://github.com/Atul-728/Hybrid-Crop-Recommendation" target="_blank">GitHub</a>
+    </div>
+</footer>
+
+<script>
+// Theme
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); themeIcon.className = t==='dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun'; localStorage.setItem('co_theme', t); }
+applyTheme(localStorage.getItem('co_theme') || 'dark');
+themeToggleBtn.addEventListener('click', () => { applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
+
+</script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>
-

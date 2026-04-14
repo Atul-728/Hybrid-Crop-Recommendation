@@ -84,7 +84,34 @@ def gemini_generate(prompt: str, api_key: str, timeout: int = 5) -> str | None:
     """Try Groq first (30 RPM free), then fall back to Gemini if Groq fails."""
     import requests
     
-    # === STEP 1: Try Groq (Primary) ===
+    # === STEP 1: Try Agent Router (Priority - Unlimited Quota) ===
+    agentrouter_key = os.environ.get("AGENTROUTER_API_KEY")
+    if agentrouter_key:
+        try:
+            res = requests.post(
+                "https://agentrouter.org/v1/chat/completions",
+                json={
+                    "model": "deepseek-v3.1",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                    "max_tokens": 1024,
+                },
+                headers={
+                    "Authorization": f"Bearer {agentrouter_key}",
+                    "Content-Type": "application/json",
+                },
+                timeout=timeout
+            )
+            if res.status_code == 200:
+                text = res.json()["choices"][0]["message"]["content"]
+                print("[AgentRouter] Success")
+                return text
+            else:
+                print(f"[AgentRouter] Error {res.status_code}, falling back to Groq...")
+        except Exception as e:
+            print(f"[AgentRouter] Error: {e}, falling back to Groq...")
+
+    # === STEP 2: Try Groq (Secondary) ===
     groq_key = os.environ.get("GROQ_API_KEY")
     if groq_key:
         global _groq_model_index
@@ -111,13 +138,13 @@ def gemini_generate(prompt: str, api_key: str, timeout: int = 5) -> str | None:
                 )
                 if res.status_code == 200:
                     text = res.json()["choices"][0]["message"]["content"]
-                    print(f"[Groq] ✓ {model}")
+                    print(f"[Groq] Success {model}")
                     return text
                 elif res.status_code in (429, 503):
-                    print(f"[Groq] {model} → {res.status_code}, rotating...")
+                    print(f"[Groq] {model} returned {res.status_code}, rotating...")
                     continue
                 else:
-                    print(f"[Groq] {model} → {res.status_code}, rotating...")
+                    print(f"[Groq] {model} returned {res.status_code}, rotating...")
                     continue
             except Exception as e:
                 print(f"[Groq] {model} error: {e}, rotating...")
@@ -141,13 +168,13 @@ def gemini_generate(prompt: str, api_key: str, timeout: int = 5) -> str | None:
                 timeout=timeout
             )
             if res.status_code == 200:
-                print(f"[Gemini] ✓ {model}")
+                print(f"[Gemini] Success {model}")
                 return res.json()["candidates"][0]["content"]["parts"][0]["text"]
             elif res.status_code in (429, 503):
-                print(f"[Gemini] {model} → {res.status_code}, rotating...")
+                print(f"[Gemini] {model} returned {res.status_code}, rotating...")
                 continue
             else:
-                print(f"[Gemini] {model} → {res.status_code}, rotating...")
+                print(f"[Gemini] {model} returned {res.status_code}, rotating...")
                 continue
         except Exception as e:
             print(f"[Gemini] {model} error: {e}, rotating...")
@@ -161,7 +188,7 @@ def fetch_gemini_economics(crop_name, city, state, region):
     if cache_key in _PRICE_CACHE:
         return _PRICE_CACHE[cache_key]
     
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("AGENTROUTER_API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GEMINI_API_KEY")
     if not api_key:
         return None
         

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +22,97 @@
             --glass: rgba(255,255,255,0.08);
             --glass-border: rgba(255,255,255,0.12);
         }
+        /* ===== LIGHT MODE ===== */
+        [data-theme="light"] {
+            --charcoal: #f5f9f5;
+            --white: #1a2e1a;
+            --glass: rgba(255,255,255,0.92);
+            --glass-border: rgba(0,0,0,0.08);
+        }
+        [data-theme="light"] body { background: #f5f9f5; color: #1a2e1a; }
+        [data-theme="light"] .hero-bg {
+            background:
+                radial-gradient(ellipse 80% 60% at 60% 40%, rgba(45,106,79,0.08) 0%, transparent 70%),
+                linear-gradient(180deg, #ddf0e4 0%, #f5f9f5 100%) !important;
+        }
+        [data-theme="light"] .hero-grid { background-image:
+            linear-gradient(rgba(45,106,79,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(45,106,79,0.05) 1px, transparent 1px) !important; }
+        [data-theme="light"] nav {
+            background: rgba(245,249,245,0.95) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+        }
+        [data-theme="light"] nav.scrolled { background: rgba(245,249,245,0.99) !important; }
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a:hover { color: #0d1f0f !important; background: rgba(45,106,79,0.09) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        [data-theme="light"] .cta-btn { background: #2d6a4f !important; color: #fff !important; }
+        [data-theme="light"] .cta-btn:hover { background: #52b788 !important; }
+        [data-theme="light"] .theme-toggle { background: rgba(45,106,79,0.08) !important; border-color: rgba(0,0,0,0.12) !important; color: #2d6a4f !important; }
+        /* Hero */
+        [data-theme="light"] .hero h1 { color: #0d1f0f !important; }
+        [data-theme="light"] .hero-subtitle { color: #3d5a3e !important; }
+        [data-theme="light"] .hero-badge { background: rgba(45,106,79,0.08) !important; border-color: rgba(45,106,79,0.2) !important; color: #2d6a4f !important; }
+        [data-theme="light"] .btn-ghost { color: #2d6a4f !important; border-color: rgba(45,106,79,0.3) !important; background: transparent !important; }
+        [data-theme="light"] .btn-ghost:hover { background: rgba(45,106,79,0.07) !important; }
+        [data-theme="light"] .hero-stats { border-top-color: rgba(0,0,0,0.08) !important; }
+        [data-theme="light"] .stat-item .stat-num { color: #0d1f0f !important; }
+        [data-theme="light"] .stat-item .stat-label { color: #5a7a5c !important; }
+        [data-theme="light"] .orbit-ring { border-color: rgba(45,106,79,0.2) !important; }
+        /* Section labels & titles */
+        [data-theme="light"] section { background: transparent !important; }
+        [data-theme="light"] .section-title { color: #0d1f0f !important; }
+        [data-theme="light"] .section-label { color: #2d6a4f !important; }
+        /* Feature cards — correct class is .feature-card not .feat-card */
+        [data-theme="light"] .feature-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(0,0,0,0.07) !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important;
+        }
+        [data-theme="light"] .feature-card h3 { color: #0d1f0f !important; }
+        [data-theme="light"] .feature-card p { color: #3d5a3e !important; }
+        [data-theme="light"] .feature-icon { background: rgba(45,106,79,0.10) !important; }
+        /* How it works steps — correct class is .step-item not .how-step */
+        [data-theme="light"] .step-item { background: #ffffff !important; border-color: rgba(0,0,0,0.06) !important; }
+        [data-theme="light"] .step-item h4 { color: #0d1f0f !important; }
+        [data-theme="light"] .step-item p { color: #3d5a3e !important; }
+        [data-theme="light"] .step-num { background: rgba(45,106,79,0.1) !important; color: #2d6a4f !important; border: none !important; }
+        /* CTA & footer */
+        [data-theme="light"] .cta-section { background: linear-gradient(135deg, #e8f5ed 0%, #d4edd9 100%) !important; }
+        [data-theme="light"] .cta-section h2 { color: #0d1f0f !important; }
+        [data-theme="light"] .cta-section p { color: #3d5a3e !important; }
+        [data-theme="light"] footer { background: #eaf3eb !important; border-top-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .footer-brand .brand-desc { color: #5a7a5c !important; }
+        [data-theme="light"] .footer-col h5 { color: #7a9a7a !important; }
+        [data-theme="light"] .footer-col a { color: #5a7a5c !important; }
+        [data-theme="light"] .footer-bottom { color: #7a9a7a !important; }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -96,6 +187,18 @@
             background: var(--lime) !important;
             transform: translateY(-1px);
         }
+        .theme-toggle {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 8px; padding: 7px 10px;
+            color: rgba(255,255,255,0.7); cursor: pointer;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .theme-toggle:hover { color: var(--sage); }
+        .nav-links .logout-nav {
+            background: rgba(229,9,20,0.1); color: #ff4f5a !important;
+            border: 1px solid rgba(229,9,20,0.2);
+        }
+        .nav-links .logout-nav:hover { background: rgba(229,9,20,0.2) !important; }
 
         /* ===== HERO ===== */
         .hero {
@@ -517,10 +620,12 @@
         {% if is_logged_in %}
             <a href="/dashboard">Dashboard</a>
             <a href="/predict">Predict</a>
-            <a href="/logs">My Logs</a>
             <a href="/analytics">Analytics</a>
-            <a href="/logout" class="cta-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="/logs">My Logs</a>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+            <a href="/logout" class="logout-nav"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         {% else %}
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
             <a href="/login">Login</a>
             <a href="/register" class="cta-btn">Get Started Free</a>
         {% endif %}
@@ -729,6 +834,20 @@
     window.addEventListener('scroll', () => {
         navbar.classList.toggle('scrolled', window.scrollY > 40);
     });
+
+    // Theme toggle
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.className = t === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        localStorage.setItem('co_theme', t);
+    }
+    applyTheme(localStorage.getItem('co_theme') || 'dark');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) themeBtn.addEventListener('click', () => {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
 </script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>

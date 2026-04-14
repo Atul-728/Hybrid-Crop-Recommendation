@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,27 +17,82 @@
             --white: #ffffff;
             --glass: rgba(255,255,255,0.06);
             --glass-border: rgba(255,255,255,0.1);
+            --bg: #1c1c1e; --surface: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.09);
+            --text-primary: #ffffff; --text-secondary: rgba(255,255,255,0.55); --text-muted: rgba(255,255,255,0.35);
+            --nav-bg: rgba(28,28,30,0.85); --surface-hover: rgba(255,255,255,0.07);
+        }
+        [data-theme="light"] {
+            --bg: #f0f4f0; --surface: rgba(255,255,255,0.85); --border: rgba(0,0,0,0.10);
+            --text-primary: #0f1f17; --text-secondary: #3d5a48; --text-muted: #6b8c77;
+            --nav-bg: rgba(240,244,240,0.92); --surface-hover: rgba(255,255,255,0.95);
+            --charcoal: #f0f4f0; --white: #0f1f17;
+            --glass: rgba(0,0,0,0.03); --glass-border: rgba(0,0,0,0.10);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; transition: background 0.3s, color 0.3s; }
 
         .bg {
             position: fixed; inset: 0; z-index: 0;
             background:
                 radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.15) 0%, transparent 60%),
                 radial-gradient(ellipse 40% 40% at 20% 80%, rgba(82,183,136,0.08) 0%, transparent 60%),
-                linear-gradient(180deg, #0d1208 0%, #1c1c1e 100%);
+                linear-gradient(180deg, #0d1208 0%, var(--bg) 100%);
         }
+        [data-theme="light"] .bg { background: radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.08) 0%, transparent 60%), linear-gradient(180deg, #e8efe8 0%, var(--bg) 100%); }
+        /* ===== PREDICT LIGHT MODE ===== */
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a:hover { color: #0d1f0f !important; background: rgba(45,106,79,0.09) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        [data-theme="light"] .page-header h1 { color: #0d1f0f !important; }
+        [data-theme="light"] .page-header p { color: #4a6e54 !important; }
+        [data-theme="light"] .tip-bar {
+            background: rgba(233,196,106,0.12) !important;
+            border-color: rgba(233,196,106,0.25) !important;
+            color: #5a4a1a !important;
+        }
+        [data-theme="light"] .predict-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(0,0,0,0.07) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.07) !important;
+        }
+        [data-theme="light"] .predict-card h3 {
+            border-bottom-color: rgba(0,0,0,0.06) !important;
+        }
+        [data-theme="light"] .input-group label { color: #5a7a5c !important; }
+        [data-theme="light"] .input-group input,
+        [data-theme="light"] .input-group select {
+            background: #f8faf8 !important;
+            border: 1px solid rgba(0,0,0,0.10) !important;
+            color: #0d1f0f !important;
+        }
+        [data-theme="light"] .input-group input::placeholder { color: #8aad8a !important; }
+        [data-theme="light"] .input-group input:focus,
+        [data-theme="light"] .input-group select:focus {
+            border-color: #52b788 !important;
+            background: #f0faf4 !important;
+        }
+        [data-theme="light"] .input-group select option { background: #ffffff; color: #0d1f0f; }
+        [data-theme="light"] .suggestions-area { background: rgba(45,106,79,0.07) !important; border-color: rgba(45,106,79,0.15) !important; }
+        [data-theme="light"] .suggestions-area .suggest-label { color: #3d6b4a !important; }
+        [data-theme="light"] .suggest-chip {
+            background: rgba(45,106,79,0.10) !important;
+            border-color: rgba(45,106,79,0.20) !important;
+            color: #1a4731 !important;
+        }
+        [data-theme="light"] .suggest-chip:hover { background: #52b788 !important; color: #fff !important; }
+        .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; color: var(--text-secondary); cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .theme-toggle:hover { color: var(--sage); }
 
         /* NAV */
         nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
             padding: 0 48px; height: 70px;
             display: flex; align-items: center; justify-content: space-between;
-            background: rgba(28,28,30,0.85); backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
+            background: var(--nav-bg); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.3s;
         }
-        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); }
         .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
         .brand-name span { color: var(--sage); }
@@ -219,15 +274,18 @@
 <nav>
     <a href="/" class="nav-brand">
         <div class="brand-icon">🌾</div>
-        <div class="brand-name">Crop<em>Oracle</em></div>
+        <div class="brand-name">Crop<span>Oracle</span></div>
     </a>
     <div class="nav-links">
         <a href="/">Home</a>
         <a href="/about">About</a>
         <a href="/dashboard">Dashboard</a>
         <a href="/predict" class="active">Predict</a>
-        <a href="/logs">My Logs</a>
         <a href="/analytics">Analytics</a>
+        <a href="/logs">My Logs</a>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
         <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
 </nav>
@@ -336,9 +394,13 @@
     </div>
 </div>
 
-<footer>
-    <span>© 2025 CropOracle — MIT License | Powered by NGBoost + Gemini AI</span>
+<footer style="background:var(--surface);border-top:1px solid var(--border);padding:28px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--text-muted);margin-top:40px;">
+    <span>© 2025 <a href="/" style="color:var(--sage);text-decoration:none;">CropOracle</a> — MIT License</span>
+    <div style="display:flex;gap:20px;"><a href="/about" style="color:var(--sage);text-decoration:none;">About</a><a href="https://github.com/Atul-728/Hybrid-Crop-Recommendation" target="_blank" style="color:var(--sage);text-decoration:none;">GitHub</a></div>
 </footer>
+        <div id="chat-input-container" style="display:flex;border-top:1px solid var(--border);height:52px;"><input type="text" id="chat-input" placeholder="Ask about crops or farming..." autocomplete="off" style="flex:1;padding:12px 16px;background:transparent;border:none;color:var(--text-primary);outline:none;font-family:'Inter',sans-serif;"><button id="chat-send" style="background:var(--sage);color:#1c1c1e;border:none;width:56px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-paper-plane"></i></button></div>
+    </div>
+</div>
 
 <script>
 // Region → State → City cascade
@@ -424,5 +486,12 @@ citySel.addEventListener('change', async () => {
     } catch(e) { chips.innerHTML = ''; }
 });
 </script>
+<script>
+// Theme
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-icon').className=t==='dark'?'fa-solid fa-moon':'fa-solid fa-sun';localStorage.setItem('co_theme',t);}
+applyTheme(localStorage.getItem('co_theme')||'dark');
+document.getElementById('theme-toggle').addEventListener('click',()=>{applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+</script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>

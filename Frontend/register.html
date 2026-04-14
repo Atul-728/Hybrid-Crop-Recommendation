@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,6 +18,74 @@
             --glass: rgba(255,255,255,0.06);
             --glass-border: rgba(255,255,255,0.1);
         }
+        /* ===== LIGHT MODE ===== */
+        [data-theme="light"] {
+            --charcoal: #f5f9f5;
+            --white: #1a2e1a;
+            --glass: rgba(255,255,255,0.92);
+            --glass-border: rgba(0,0,0,0.08);
+        }
+        [data-theme="light"] body { background: #f5f9f5; }
+        [data-theme="light"] .bg {
+            background:
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #ddf0e4 0%, #f5f9f5 100%) !important;
+        }
+        [data-theme="light"] nav { background: rgba(245,249,245,0.95) !important; border-bottom: 1px solid rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        [data-theme="light"] .cta-btn { background: #2d6a4f !important; color: #fff !important; }
+        [data-theme="light"] .theme-toggle { background: rgba(45,106,79,0.07) !important; border-color: rgba(0,0,0,0.1) !important; color: #2d6a4f !important; }
+        [data-theme="light"] .auth-box {
+            background: #ffffff !important;
+            border: 1px solid rgba(0,0,0,0.07) !important;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08) !important;
+        }
+        [data-theme="light"] .auth-header h1 { color: #0d1f0f !important; }
+        [data-theme="light"] .auth-header p { color: #5a7a5c !important; }
+        [data-theme="light"] .form-group label { color: #5a7a5c !important; }
+        /* Username field has its OWN .username-row label separate from .form-group */
+        [data-theme="light"] .username-row label { color: #5a7a5c !important; }
+        [data-theme="light"] .form-group input, [data-theme="light"] .form-group select,
+        [data-theme="light"] .username-input {
+            background: #f8faf8 !important;
+            border: 1px solid rgba(0,0,0,0.10) !important;
+            color: #0d1f0f !important;
+        }
+        [data-theme="light"] .form-group input::placeholder,
+        [data-theme="light"] .username-input::placeholder { color: #8aad8a !important; }
+        [data-theme="light"] .form-group input:focus,
+        [data-theme="light"] .username-input:focus { border-color: #52b788 !important; background: #f0faf4 !important; }
+        [data-theme="light"] .eye-toggle { color: #8aad8a !important; }
+        [data-theme="light"] .bar-segment { background: rgba(0,0,0,0.08) !important; }
+        [data-theme="light"] .password-hint, [data-theme="light"] .field-hint { color: #7a9a7a !important; }
+        [data-theme="light"] .divider { color: #8aad8a !important; }
+        [data-theme="light"] .divider::before, [data-theme="light"] .divider::after { background: rgba(0,0,0,0.08) !important; }
+        [data-theme="light"] .google-btn {
+            background: #f8faf8 !important; border: 1px solid rgba(0,0,0,0.10) !important; color: #1a2e1a !important;
+        }
+        [data-theme="light"] .google-btn:hover { background: #f0faf4 !important; border-color: #52b788 !important; }
+        [data-theme="light"] .login-link, [data-theme="light"] .auth-footer-link { color: #5a7a5c !important; }
+        [data-theme="light"] .username-feedback { color: #7a9a7a !important; }
+        [data-theme="light"] .strength-bar-track { background: rgba(0,0,0,0.07) !important; }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
 
@@ -41,25 +109,15 @@
         .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
         .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .brand-name em { color: var(--sage); font-style: normal; }
-        .nav-links { display: flex; align-items: center; gap: 8px; }
-        .nav-links a { text-decoration: none; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
-        .nav-links a.about-link { color: rgba(255,255,255,0.7); }
-        .nav-links a.about-link:hover { color: var(--sage); background: rgba(82,183,136,0.08); }
-        .nav-links a.nav-locked { color: rgba(255,255,255,0.25); cursor: default; pointer-events: none; }
-        .nav-links .cta-btn {
-            background: var(--forest-mid); color: var(--white) !important;
-            font-weight: 700; padding: 9px 22px; border-radius: 8px;
-            pointer-events: all !important; opacity: 1 !important;
-            border: 1px solid rgba(82,183,136,0.3);
-        }
-        .nav-links .cta-btn:hover { background: var(--forest-mid) !important; }
-        .theme-btn {
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px; padding: 7px 10px;
-            color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px;
-        }
-        .theme-btn:hover { background: rgba(255,255,255,0.12); }
+        .brand-name span { color: var(--sage); }
+        .nav-links { display: flex; align-items: center; gap: 6px; }
+        .nav-links a { text-decoration: none; color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 500; padding: 7px 13px; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+        .nav-links a.active { color: var(--sage); }
+        .nav-links .cta-btn { background: var(--sage); color: var(--charcoal) !important; font-weight: 700; padding: 9px 22px; border-radius: 8px; }
+        .nav-links .cta-btn:hover { background: var(--lime) !important; transform: translateY(-1px); }
+        .theme-toggle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 7px 10px; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; }
+        .theme-toggle:hover { color: var(--sage); }
 
         /* MAIN */
         main {
@@ -110,6 +168,16 @@
             text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 0;
         }
         #username-status { font-size: 12px; font-weight: 700; }
+        .username-input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; color: #fff;
+            font-size: 15px; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.2s;
+        }
+        .username-input:focus { border-color: var(--sage); background: rgba(82,183,136,0.06); }
+        .username-input::placeholder { color: rgba(255,255,255,0.25); }
 
         .password-wrap { position: relative; }
         .password-wrap input { padding-right: 46px; }
@@ -173,14 +241,13 @@
 <nav>
     <a href="/" class="nav-brand">
         <div class="brand-icon">🌾</div>
-        <div class="brand-name">Crop<em>Oracle</em></div>
+        <div class="brand-name">Crop<span>Oracle</span></div>
     </a>
     <div class="nav-links">
-        <a href="/" class="nav-locked">Home <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
-        <a href="/about" class="about-link">About</a>
-        <a href="/predict" class="nav-locked">Predict <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
-        <a href="/logs" class="nav-locked">My Logs <i class="fa-solid fa-lock" style="font-size:10px;opacity:0.4;"></i></a>
-        <button class="theme-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/register" class="active">Sign Up</a>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
         <a href="/login" class="cta-btn">Sign In</a>
     </div>
 </nav>
@@ -215,11 +282,11 @@
                     <span id="username-status"></span>
                 </div>
                 <input type="text" name="username" id="username"
-                    placeholder="johndoe123" required minlength="5"
-                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$"
-                    title="Must be at least 5 characters with both letters and numbers."
-                    style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:all 0.2s;"
+                    placeholder="john123" required minlength="3"
+                    class="username-input"
+                    title="At least 3 characters, letters only or mix of letters & numbers."
                     autocomplete="off">
+
             </div>
 
             <div class="form-group">
@@ -260,16 +327,15 @@
 </main>
 
 <script>
-function toggleTheme() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    document.body.setAttribute('data-theme', isDark ? '' : 'dark');
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('theme-icon').className = t === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    localStorage.setItem('co_theme', t);
 }
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.setAttribute('data-theme','dark');
-    document.getElementById('theme-icon').className = 'fa-solid fa-sun';
-}
+applyTheme(localStorage.getItem('co_theme') || 'dark');
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
 
 // Password toggle
 const password = document.getElementById('password');
@@ -332,5 +398,6 @@ document.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('blur', () => { inp.style.borderColor = 'rgba(255,255,255,0.08)'; inp.style.background = 'rgba(255,255,255,0.06)'; });
 });
 </script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>

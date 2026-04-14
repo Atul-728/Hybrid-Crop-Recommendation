@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +22,73 @@
             --glass: rgba(255,255,255,0.06);
             --glass-border: rgba(255,255,255,0.1);
         }
+        /* ===== LIGHT MODE ===== */
+        [data-theme="light"] {
+            --charcoal: #f5f9f5;
+            --white: #1a2e1a;
+            --glass: rgba(255,255,255,0.92);
+            --glass-border: rgba(0,0,0,0.08);
+        }
+        [data-theme="light"] body { background: #f5f9f5; color: #1a2e1a; }
+        /* Nav */
+        [data-theme="light"] nav { background: rgba(245,249,245,0.95) !important; border-bottom: 1px solid rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a:hover { color: #0d1f0f !important; background: rgba(45,106,79,0.09) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        [data-theme="light"] .cta-btn { background: #2d6a4f !important; color: #fff !important; }
+        [data-theme="light"] .theme-toggle { background: rgba(45,106,79,0.08) !important; border-color: rgba(0,0,0,0.12) !important; color: #2d6a4f !important; }
+        /* Page header */
+        [data-theme="light"] .page-header { background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(45,106,79,0.07) 0%, transparent 70%) !important; border-bottom-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .page-header h1 { color: #0d1f0f !important; }
+        [data-theme="light"] .page-header p { color: #3d5a3e !important; }
+        [data-theme="light"] .page-header .label { color: #2d6a4f !important; }
+        /* Content sections */
+        [data-theme="light"] .content-section { border-top-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .content-section h2 { color: #0d1f0f !important; }
+        [data-theme="light"] .content-section p { color: #3d5a3e !important; }
+        [data-theme="light"] .content-section .section-icon { background: rgba(45,106,79,0.10) !important; border-color: rgba(45,106,79,0.15) !important; }
+        /* Mission quote */
+        [data-theme="light"] .mission-quote { background: rgba(45,106,79,0.06) !important; }
+        [data-theme="light"] .mission-quote p { color: #1a3d22 !important; }
+        /* Milestones */
+        [data-theme="light"] .milestones li { border-bottom-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .milestone-content h4 { color: #0d1f0f !important; }
+        [data-theme="light"] .milestone-content p { color: #5a7a5c !important; }
+        /* Tech cards */
+        [data-theme="light"] .tech-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(0,0,0,0.07) !important;
+        }
+        [data-theme="light"] .tech-card:hover { background: #f0faf4 !important; border-color: rgba(45,106,79,0.2) !important; }
+        [data-theme="light"] .tech-card .tech-name { color: #0d1f0f !important; }
+        [data-theme="light"] .tech-card .tech-desc { color: #5a7a5c !important; }
+        /* How to use steps */
+        [data-theme="light"] .how-step { background: #ffffff !important; border-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .how-step:hover { background: #f0faf4 !important; }
+        [data-theme="light"] .how-step-content h4 { color: #0d1f0f !important; }
+        [data-theme="light"] .how-step-content p { color: #5a7a5c !important; }
+        /* Footer */
+        [data-theme="light"] footer { background: #eaf3eb !important; border-top-color: rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .footer-brand .brand-desc { color: #5a7a5c !important; }
+        [data-theme="light"] .footer-col h5 { color: #7a9a7a !important; }
+        [data-theme="light"] .footer-col a { color: #5a7a5c !important; }
+        [data-theme="light"] .footer-bottom { color: #7a9a7a !important; border-top-color: rgba(0,0,0,0.07) !important; }
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); }
 
@@ -43,6 +110,10 @@
         .nav-links a.active { color: var(--sage); }
         .nav-links .cta-btn { background: var(--sage); color: var(--charcoal) !important; font-weight: 700; }
         .nav-links .cta-btn:hover { background: var(--lime) !important; }
+        .theme-toggle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 7px 10px; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .theme-toggle:hover { color: var(--sage); }
+        .nav-links .logout-nav { background: rgba(229,9,20,0.1); color: #ff4f5a !important; border: 1px solid rgba(229,9,20,0.2); }
+        .nav-links .logout-nav:hover { background: rgba(229,9,20,0.2) !important; }
 
         /* PAGE HEADER */
         .page-header {
@@ -212,10 +283,12 @@
         {% if is_logged_in %}
             <a href="/dashboard">Dashboard</a>
             <a href="/predict">Predict</a>
-            <a href="/logs">My Logs</a>
             <a href="/analytics">Analytics</a>
-            <a href="/logout" class="cta-btn">Logout</a>
+            <a href="/logs">My Logs</a>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+            <a href="/logout" class="logout-nav"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         {% else %}
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
             <a href="/login">Login</a>
             <a href="/register" class="cta-btn">Get Started</a>
         {% endif %}
@@ -453,5 +526,19 @@
     </div>
 </footer>
 
+<script>
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.className = t === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        localStorage.setItem('co_theme', t);
+    }
+    applyTheme(localStorage.getItem('co_theme') || 'dark');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) themeBtn.addEventListener('click', () => {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+</script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>

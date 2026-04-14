@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,6 +18,53 @@
             --glass: rgba(255,255,255,0.06);
             --glass-border: rgba(255,255,255,0.1);
         }
+        /* ===== LIGHT MODE ===== */
+        [data-theme="light"] {
+            --charcoal: #f5f9f5;
+            --white: #1a2e1a;
+            --glass: rgba(255,255,255,0.92);
+            --glass-border: rgba(0,0,0,0.08);
+        }
+        [data-theme="light"] .nav-links a { color: rgba(26,46,26,0.80) !important; }
+        [data-theme="light"] .nav-links a:hover { color: #0d1f0f !important; background: rgba(45,106,79,0.09) !important; }
+        [data-theme="light"] .nav-links a.active { color: #1a5c3a !important; font-weight: 700 !important; background: rgba(45,106,79,0.10) !important; border-radius: 8px !important; }
+        [data-theme="light"] body { background: #f5f9f5; }
+        [data-theme="light"] .bg {
+            background:
+                radial-gradient(ellipse 60% 60% at 80% 20%, rgba(45,106,79,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #ddf0e4 0%, #f5f9f5 100%) !important;
+        }
+        [data-theme="light"] nav { background: rgba(245,249,245,0.95) !important; border-bottom: 1px solid rgba(0,0,0,0.07) !important; }
+        [data-theme="light"] .theme-toggle { background: rgba(45,106,79,0.07) !important; border-color: rgba(0,0,0,0.1) !important; color: #2d6a4f !important; }
+        [data-theme="light"] .auth-box {
+            background: #ffffff !important;
+            border: 1px solid rgba(0,0,0,0.07) !important;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.08) !important;
+        }
+        [data-theme="light"] .google-pill {
+            background: #f0faf4 !important;
+            border: 1px solid rgba(45,106,79,0.15) !important;
+            color: #2d6a4f !important;
+        }
+        [data-theme="light"] .auth-header h1 { color: #0d1f0f !important; }
+        [data-theme="light"] .auth-header p { color: #5a7a5c !important; }
+        [data-theme="light"] .step-line { background: rgba(0,0,0,0.08) !important; }
+        [data-theme="light"] .step-line.done { background: rgba(45,106,79,0.3) !important; }
+        [data-theme="light"] .form-group label { color: #5a7a5c !important; }
+        [data-theme="light"] .form-group input {
+            background: #f8faf8 !important;
+            border: 1px solid rgba(0,0,0,0.10) !important;
+            color: #0d1f0f !important;
+        }
+        [data-theme="light"] .form-group input::placeholder { color: #8aad8a !important; }
+        [data-theme="light"] .form-group input:focus { border-color: #52b788 !important; background: #f0faf4 !important; }
+        [data-theme="light"] .username-hint { color: #7a9a7a !important; }
+        [data-theme="light"] .auth-footer-link { color: #5a7a5c !important; }
+
+        
+        
+        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--charcoal); color: var(--white); min-height: 100vh; }
 
@@ -39,7 +86,9 @@
         .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--white); }
         .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--forest-mid), var(--sage)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .brand-name em { color: var(--sage); font-style: normal; }
+        .brand-name span { color: var(--sage); }
+        .theme-toggle { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; padding: 7px 10px; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; }
+        .theme-toggle:hover { color: var(--sage); }
 
         main {
             position: relative; z-index: 1;
@@ -137,8 +186,9 @@
 <nav>
     <a href="/" class="nav-brand">
         <div class="brand-icon">🌾</div>
-        <div class="brand-name">Crop<em>Oracle</em></div>
+        <div class="brand-name">Crop<span>Oracle</span></div>
     </a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
 </nav>
 
 <main>
@@ -174,13 +224,13 @@
                     <span id="username-status"></span>
                 </div>
                 <input type="text" name="username" id="username"
-                    placeholder="johndoe123" required minlength="5"
-                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$"
-                    title="At least 5 characters with both letters and numbers."
+                    placeholder="john123" required minlength="3"
+                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{3,}$"
+                    title="At least 3 characters with both letters and numbers."
                     autocomplete="off">
                 <p class="username-hint">
                     <i class="fa-solid fa-info-circle"></i>
-                    Min 5 characters · Letters &amp; numbers only · No spaces
+                    Min 3 characters · Letters &amp; numbers only · No spaces
                 </p>
             </div>
 
@@ -196,6 +246,9 @@
 </main>
 
 <script>
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-icon').className=t==='dark'?'fa-solid fa-moon':'fa-solid fa-sun';localStorage.setItem('co_theme',t);}
+applyTheme(localStorage.getItem('co_theme')||'dark');
+document.getElementById('theme-toggle').addEventListener('click',()=>{applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 const usernameInput = document.getElementById('username');
 const usernameStatus = document.getElementById('username-status');
 let typingTimer;
@@ -230,5 +283,6 @@ usernameInput.addEventListener('input', function() {
     }, 500);
 });
 </script>
+<script src="/static/chatbot.js"></script>
 </body>
 </html>
