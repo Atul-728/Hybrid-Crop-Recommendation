@@ -19,6 +19,7 @@ spec:
         - name: croporacle
           image: croporacle:latest
           imagePullPolicy: Never   # Use local Minikube image
+          command: ["/bin/sh", "-c", "rm -f /app/.env.local && uvicorn Backend.main:app --host 0.0.0.0 --port 8080"]
           ports:
             - containerPort: 8080
           resources:
@@ -32,6 +33,11 @@ spec:
             - configMapRef:
                 name: croporacle-config
           env:
+            - name: APP_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: croporacle-config
+                  key: APP_BASE_URL
             - name: DATABASE_URL
               value: "postgresql://postgres:localpass@postgres:5432/cropdb"
           readinessProbe:
