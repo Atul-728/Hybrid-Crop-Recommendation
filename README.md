@@ -45,21 +45,10 @@ Use this if you just want to quickly test the website on your own laptop without
 
 ---
 
-### Method B: The Production Method (Docker Compose)
-Use this if you want to run the full Database and Application inside isolated Docker containers.
-
-1. **Start Docker:**
-   ```bash
-   docker-compose up -d --build
-   ```
-2. **Access the Website:** Open your browser and go to `http://localhost:8081`
-
----
-
-### Method C: The Enterprise Level (Kubernetes)
+### Method B: The Enterprise Level (Kubernetes)
 Use this to simulate a massive cloud-scale deployment using Minikube. Run these commands strictly in this order:
 
-**⚠️ IMPORTANT PORT RULE:** You can only run ONE method at a time. Before starting Kubernetes, ensure that Method A (uvicorn) and Method B (docker-compose) are completely stopped to prevent port conflicts on `8080` and `8081`.
+**⚠️ IMPORTANT PORT RULE:** You can only run ONE method at a time. Before starting Kubernetes, ensure that Method A (uvicorn) is completely stopped to prevent port conflicts.
 
 1. **Start the Mini-Cloud Cluster & Enable Monitor:**
    ```bash
@@ -119,7 +108,7 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
 
 ---
 
-### Method D: The Monitoring System (Prometheus & Grafana)
+### Method C: The Monitoring System (Prometheus & Grafana)
 Use this to launch the graphical dashboards that measure CPU and Memory loads. 
 
 **Note:** The monitoring stack is independent and can be used to watch the application whether it is running via Docker Compose or Kubernetes.
@@ -150,3 +139,19 @@ Use this to launch the graphical dashboards that measure CPU and Memory loads.
    This monitoring stack provides real-time visibility into the infrastructure. To observe system behavior under load, perform several crop predictions on the live website. Prometheus will capture the resulting CPU spike, which Grafana will visualize instantly. 
    
    **Architecture Note:** When CPU utilization exceeds the configured threshold (e.g., 75%), the Kubernetes Horizontal Pod Autoscaler (HPA) will dynamically spin up additional replicas (up to 5) to maintain platform stability. This can be verified via `kubectl get pods`.
+
+---
+
+### Method D: Exposing Locally via Secure Tunnel (ngrok)
+Use this to securely expose your locally running Kubernetes cluster to the public internet. This allows external users or testers to access the application from their devices anywhere in the world, generating real internet traffic that triggers auto-scaling.
+
+1. **Install ngrok:**
+   Download and install the ngrok CLI from the official website.
+
+2. **Start the Tunnel:**
+   Keep your Kubernetes port-forward (`8090`) running in one terminal. In a new terminal, run:
+   ```bash
+   ngrok http 8090
+   ```
+3. **Share the Link:**
+   ngrok will generate a secure public HTTPS URL (e.g., `https://random-string.ngrok-free.app`). Anyone can visit this link to access the live application securely. All traffic will route directly to your local Kubernetes pods.
