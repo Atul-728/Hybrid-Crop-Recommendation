@@ -109,7 +109,7 @@
           "refId": "A"
         }
       ],
-      "title": "🖥️ CPU Utilization (HPA Trigger Watch)",
+      "title": "\ud83d\udda5\ufe0f CPU Utilization (HPA Trigger Watch)",
       "type": "timeseries"
     },
     {
@@ -198,7 +198,7 @@
           "refId": "A"
         }
       ],
-      "title": "🧠 Memory Consumption",
+      "title": "\ud83e\udde0 Memory Consumption",
       "type": "timeseries"
     },
     {
@@ -287,8 +287,52 @@
           "refId": "A"
         }
       ],
-      "title": "🌐 HTTP Traffic (Requests per Second)",
+      "title": "\ud83c\udf10 HTTP Traffic (Requests per Second)",
       "type": "timeseries"
+    },
+    {
+      "type": "stat",
+      "title": "\ud83d\udc65 Total Registered Users",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 6
+      },
+      "id": 100,
+      "targets": [
+        {
+          "expr": "croporacle_registered_users_total",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "\ud83e\udd16 Total AI Predictions",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 6
+      },
+      "id": 101,
+      "targets": [
+        {
+          "expr": "croporacle_predictions_total",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
     }
   ],
   "schemaVersion": 36,
@@ -306,7 +350,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "🌱 CropOracle - Multi-Node Monitoring",
+  "title": "\ud83c\udf31 CropOracle - Multi-Node Monitoring",
   "uid": "croporacle-monitoring",
   "version": 1,
   "weekStart": ""
