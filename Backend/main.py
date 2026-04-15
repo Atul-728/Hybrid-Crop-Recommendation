@@ -357,7 +357,16 @@ async def resend_otp(
 # Live availability checks
 @app.get("/check-username")
 def check_username(username: str, db: Session = Depends(get_db)):
-    return JSONResponse({"available": not db.query(User).filter(User.username == username).first()})
+    # Check DB
+    if db.query(User).filter(User.username == username).first():
+        return JSONResponse({"available": False})
+    
+    # Check Active Registration Queue
+    is_in_temp = any(u.get("username") == username for u in TEMP_USERS.values())
+    if is_in_temp:
+        return JSONResponse({"available": False})
+        
+    return JSONResponse({"available": True})
 
 @app.get("/check-email")
 def check_email(email: str, db: Session = Depends(get_db)):
@@ -572,9 +581,16 @@ def check_username_api(username: str, db: Session = Depends(get_db)):
     is_valid, error_msg = validate_username(username)
     if not is_valid:
         return JSONResponse({"available": False, "error": error_msg})
-    user = db.query(User).filter(User.username == username).first()
-    if user:
+    
+    # Check Database
+    if db.query(User).filter(User.username == username).first():
         return JSONResponse({"available": False, "error": "Username is already taken."})
+    
+    # Check Active Registration Queue
+    is_in_temp = any(u.get("username") == username for u in TEMP_USERS.values())
+    if is_in_temp:
+        return JSONResponse({"available": False, "error": "Username is currently being registered by another user."})
+        
     return JSONResponse({"available": True, "error": ""})
 
 # ----------------------------
