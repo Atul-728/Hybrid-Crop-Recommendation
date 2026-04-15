@@ -142,16 +142,27 @@ Use this to launch the graphical dashboards that measure CPU and Memory loads.
 
 ---
 
-### Method D: Exposing Locally via Secure Tunnel (ngrok)
-Use this to securely expose your locally running Kubernetes cluster to the public internet. This allows external users or testers to access the application from their devices anywhere in the world, generating real internet traffic that triggers auto-scaling.
+### Method D: Public Exposer via Secure Tunnel (ngrok)
+Use this to securely expose your locally running Kubernetes cluster to the public internet using a permanent static domain. This allows external users or testers to access the application from their devices anywhere in the world, generating real internet traffic that triggers auto-scaling.
 
-1. **Install ngrok:**
-   Download and install the ngrok CLI from the official website.
-
-2. **Start the Tunnel:**
-   Keep your Kubernetes port-forward (`8090`) running in one terminal. In a new terminal, run:
+1. **Install and Authenticate ngrok:**
+   Download the ngrok CLI from the official website. You must authenticate it once to use static domains by finding your token on the ngrok dashboard:
    ```bash
-   ngrok http 8090
+   ngrok config add-authtoken <YOUR_AUTH_TOKEN>
    ```
-3. **Share the Link:**
-   ngrok will generate a secure public HTTPS URL (e.g., `https://random-string.ngrok-free.app`). Anyone can visit this link to access the live application securely. All traffic will route directly to your local Kubernetes pods.
+
+2. **Start the Required Local Services:**
+   Ensure your local cluster is running and the internal port-forward is active in a terminal. **Leave this terminal open**:
+   ```bash
+   minikube start
+   kubectl port-forward svc/croporacle-service 8090:8080
+   ```
+
+3. **Activate the Public Static Link:**
+   In a new, separate terminal window, initialize the secure tunnel using the project's dedicated domain. This command routes all external HTTPS traffic directly into your local cluster.
+   ```bash
+   ngrok http --domain=excitable-demystify-reissue.ngrok-free.dev 8090
+   ```
+
+4. **Verify Connectivity:**
+   Anyone can now visit `https://excitable-demystify-reissue.ngrok-free.dev` on their mobile or desktop browser to access the live platform securely from anywhere, provided that your host machine stays awake and both the port-forward and ngrok terminal processes remain running.
