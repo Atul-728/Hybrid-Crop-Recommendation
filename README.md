@@ -110,8 +110,9 @@ Use this to simulate a massive cloud-scale deployment using Minikube. Run these 
    kubectl scale deployment croporacle-app --replicas=5
    ```
    
-   **Option B: Automatic Auto-Scaling (HPA)**
-   We have already configured a **Horizontal Pod Autoscaler (HPA)**. To see it in action:
+   **Option B: Automatic - **Auto-Scaling (HPA):** Scales from 1 to 5 replicas based on CPU load.
+   - **Resource Baseline:** 500m CPU (0.5 Core) / 512Mi RAM.
+   - **Scaling Threshold:** Triggers at 75% of baseline utilization.
     1. Open a terminal and run: `kubectl get hpa -w`
     2. Open the website and refresh the "Predict" page frequently to generate load.
     3. Within 1-2 minutes, if the CPU usage hits the **75% threshold**, you will see the "REPLICAS" column automatically jump from 1 to 5!
