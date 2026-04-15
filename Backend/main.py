@@ -43,7 +43,20 @@ templates = Jinja2Templates(directory="Frontend")
 # PROMETHEUS METRICS
 # ----------------------------
 if PROMETHEUS_ENABLED:
+    from prometheus_client import Gauge, Counter
+    
+    # Custom Business Metrics
+    REGISTERED_USERS = Gauge("croporacle_registered_users_total", "Total registered users")
+    TOTAL_PREDICTIONS = Counter("croporacle_predictions_total", "Total AI predictions made")
+    
     Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+    
+    @app.on_event("startup")
+    def setup_metrics():
+        db = SessionLocal()
+        user_count = db.query(User).count()
+        REGISTERED_USERS.set(user_count)
+        db.close()
 
 # ----------------------------
 # HEALTH CHECK
@@ -313,6 +326,10 @@ def verify_otp(request: Request, email: str = Form(...), otp: str = Form(...), d
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        
+        if PROMETHEUS_ENABLED:
+            REGISTERED_USERS.inc()
+            
         # Only delete from temp store AFTER successful DB commit
         del TEMP_USERS[email]
         return templates.TemplateResponse("login.html", {
@@ -632,6 +649,10 @@ def predict(
 ):
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
+    
+    if PROMETHEUS_ENABLED:
+        TOTAL_PREDICTIONS.inc()
+        
     input_data = {
         "N": N, "P": P, "K": K,
         "temperature": temperature, "humidity": humidity,
