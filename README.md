@@ -145,6 +145,14 @@ Use this to launch the graphical dashboards that measure CPU and Memory loads.
 ### Method D: Public Exposer via Secure Tunnel (ngrok)
 Use this to securely expose your locally running Kubernetes cluster to the public internet using a permanent static domain. This allows external users or testers to access the application from their devices anywhere in the world, generating real internet traffic that triggers auto-scaling.
 
+#### How the ngrok Tunnel Works:
+When you run ngrok, it acts as a secure bridge between your local development server and the internet. Your terminal will display two important URLs:
+*   **Web Interface (e.g., `http://127.0.0.1:4040`):** This is ngrok's local traffic dashboard. You can open this in your local browser to inspect exactly which internet requests are coming into your laptop in real-time, including headers and payload bodies.
+*   **Forwarding (e.g., `https://<YOUR-DOMAIN>.ngrok-free.dev -> http://localhost:8090`):** This tells you that any external user who visits the public `ngrok-free.dev` URL will have their traffic securely tunneled directly into your local machine's `8090` port. 
+   *(Yes, you can still access your site locally via `localhost:8090` yourself, but ngrok makes that exact same port accessible globally to the outside world).*
+
+#### Setup Instructions:
+
 1. **Install and Authenticate ngrok:**
    Download the ngrok CLI from the official website. You must authenticate it once to use static domains by finding your token on the ngrok dashboard:
    ```bash
@@ -157,12 +165,13 @@ Use this to securely expose your locally running Kubernetes cluster to the publi
    minikube start
    kubectl port-forward svc/croporacle-service 8090:8080
    ```
+   *(Note: `8090` is an example local port mapped to the cluster. Adjust if necessary).*
 
 3. **Activate the Public Static Link:**
-   In a new, separate terminal window, initialize the secure tunnel using the project's dedicated domain. This command routes all external HTTPS traffic directly into your local cluster.
+   In a new, separate terminal window, initialize the secure tunnel using the free static domain provided to you in your ngrok "Cloud Edge > Domains" dashboard:
    ```bash
-   ngrok http --domain=excitable-demystify-reissue.ngrok-free.dev 8090
+   ngrok http --domain=<YOUR_STATIC_DOMAIN>.ngrok-free.dev 8090
    ```
 
 4. **Verify Connectivity:**
-   Anyone can now visit `https://excitable-demystify-reissue.ngrok-free.dev` on their mobile or desktop browser to access the live platform securely from anywhere, provided that your host machine stays awake and both the port-forward and ngrok terminal processes remain running.
+   Anyone can now visit your custom `https://<YOUR_STATIC_DOMAIN>.ngrok-free.dev` on their mobile or desktop browser to access the live platform securely from anywhere, provided that your host machine stays awake and both the port-forward and ngrok terminal processes remain running.
