@@ -18,7 +18,7 @@ spec:
       containers:
         - name: croporacle
           image: croporacle:latest
-          imagePullPolicy: Never   # Use local Minikube image
+          imagePullPolicy: Never
           command: ["/bin/sh", "-c", "rm -f /app/.env.local && uvicorn Backend.main:app --host 0.0.0.0 --port 8080"]
           ports:
             - containerPort: 8080
